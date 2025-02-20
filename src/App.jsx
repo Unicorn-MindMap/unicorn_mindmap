@@ -1,9 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ForceGraph3D from "react-force-graph-3d";
 import * as THREE from "three";
 
 const GraphVisualization = ({ data }) => {
+  const fgRef = useRef();
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [highlightNodes, setHighlightNodes] = useState(new Set());
+  const [highlightLinks, setHighlightLinks] = useState(new Set());
+  const [searchTerm, setSearchTerm] = useState("");
+  const [focusedNode, setFocusedNode] = useState(null);
+  const [highlightDepth, setHighlightDepth] = useState(0);
 
   useEffect(() => {
     const nodes = [];
@@ -13,8 +19,7 @@ const GraphVisualization = ({ data }) => {
       nodes.push({ id: node.id, label: node.label });
 
       if (parentId) {
-        links.push({ source: parentId, target: node.id });
-        links.push({ source: node.id, target: parentId }); // Add reverse link for undirected graph
+        links.push({ source: parentId, target: node.id, type: "parent-child" });
       }
 
       if (node.children) {
@@ -23,8 +28,7 @@ const GraphVisualization = ({ data }) => {
 
       if (node.links) {
         node.links.forEach((link) => {
-          links.push({ source: node.id, target: link.id });
-          links.push({ source: link.id, target: node.id }); // Add reverse link for undirected graph
+          links.push({ source: node.id, target: link.id, type: "interrelated" });
         });
       }
     };
@@ -33,47 +37,203 @@ const GraphVisualization = ({ data }) => {
     setGraphData({ nodes, links });
   }, [data]);
 
+  const getConnectedNodesAndLinks = useCallback((nodeId, depth = highlightDepth, visited = new Set(), currentDepth = 0) => {
+    const connectedNodes = new Set();
+    const connectedLinks = new Set();
+    
+    if (currentDepth > depth) return { nodes: connectedNodes, links: connectedLinks };
+    
+    // Add current node to visited
+    visited.add(nodeId);
+    
+    // Find all links connected to this node
+    graphData.links.forEach(link => {
+      const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+      const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+      
+      if (sourceId === nodeId || targetId === nodeId) {
+        // Add the link to connected links
+        connectedLinks.add(link);
+        
+        // Add the connected node
+        const connectedNodeId = sourceId === nodeId ? targetId : sourceId;
+        const connectedNode = graphData.nodes.find(n => n.id === connectedNodeId);
+        
+        if (connectedNode && !visited.has(connectedNodeId)) {
+          connectedNodes.add(connectedNode);
+          
+          // Recursively get nodes and links for next level if we haven't reached max depth
+          if (currentDepth < depth) {
+            const nextLevel = getConnectedNodesAndLinks(
+              connectedNodeId, 
+              depth, 
+              new Set([...visited]), 
+              currentDepth + 1
+            );
+            
+            // Merge the results
+            nextLevel.nodes.forEach(n => connectedNodes.add(n));
+            nextLevel.links.forEach(l => connectedLinks.add(l));
+          }
+        }
+      }
+    });
+    
+    return { nodes: connectedNodes, links: connectedLinks };
+  }, [graphData, highlightDepth]);
+
+  const handleNodeClick = useCallback((node) => {
+    const newHighlightNodes = new Set();
+    const newHighlightLinks = new Set();
+
+    setFocusedNode(node);
+    
+    // Get connected nodes and links up to specified depth
+    const connected = getConnectedNodesAndLinks(node.id);
+    
+    // Add all connected nodes and links to highlight sets
+    connected.nodes.forEach(n => newHighlightNodes.add(n));
+    connected.links.forEach(l => newHighlightLinks.add(l));
+
+    setHighlightNodes(newHighlightNodes);
+    setHighlightLinks(newHighlightLinks);
+
+    // Focus on clicked node
+    const distance = 120;
+    const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+
+    fgRef.current.cameraPosition(
+      { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio },
+      node,
+      3000
+    );
+  }, [getConnectedNodesAndLinks]);
+
+  // Update highlights when depth changes
+  useEffect(() => {
+    if (focusedNode) {
+      handleNodeClick(focusedNode);
+    }
+  }, [highlightDepth, focusedNode, handleNodeClick]);
+
+  const handleSearch = () => {
+    const node = graphData.nodes.find((n) => n.label.toLowerCase() === searchTerm.toLowerCase());
+    if (node) {
+      handleNodeClick(node);
+    }
+  };
+
+  const nodeThreeObject = useCallback((node) => {
+    const isHighlighted = highlightNodes.has(node);
+    const isFocused = focusedNode && node.id === focusedNode.id;
+    
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(createTextLabel(node.label, isHighlighted, isFocused)),
+        depthTest: false,
+      })
+    );
+    sprite.scale.set(20, 10, 1);
+    sprite.position.set(0, 6, 0);
+    return sprite;
+  }, [highlightNodes, focusedNode]);
+
+  const createTextLabel = (text, isHighlighted, isFocused) => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    canvas.width = 256;
+    canvas.height = 128;
+    
+    // Background color based on status
+    context.fillStyle = isFocused ? "lightgreen" : isHighlighted ? "#ffeeee" : "white";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    
+    context.fillStyle = "black";
+    context.font = "30px Arial";
+    context.fillText(text, 20, 50);
+
+    // Add border with appropriate color
+    context.strokeStyle = isFocused ? "black" : isHighlighted ? "red" : "gray";
+    context.lineWidth = isFocused ? 4 : isHighlighted ? 3 : 2;
+    context.strokeRect(0, 0, canvas.width, canvas.height);
+
+    return canvas;
+  };
+
+  // Function to determine node color
+  const getNodeColor = (node) => {
+    // Focused node is black
+    if (focusedNode && node.id === focusedNode.id) {
+      return "black";
+    }
+    
+    // Connected nodes are light red
+    if (highlightNodes.has(node)) {
+      return "rgb(255, 100, 100)";
+    }
+    
+    // Default color for non-highlighted nodes
+    return "gray";
+  };
+
+  // Function to determine link color based on highlight
+  const getLinkColor = (link) => {
+    if (!highlightLinks.has(link)) {
+      return link.type === "parent-child" ? "blue" : "black";
+    }
+    
+    // Highlighted links
+    return "red";
+  };
+
   return (
-    <ForceGraph3D
-      graphData={graphData}
-      nodeLabel="label"
-      nodeAutoColorBy="id"
-      linkColor={() => "black"}
-      linkDirectionalArrowLength={3}
-      linkDirectionalArrowRelPos={1}
-      backgroundColor="#e6f2fc"
-      nodeThreeObject={(node) => {
-        const sprite = new THREE.Sprite(
-          new THREE.SpriteMaterial({
-            map: new THREE.CanvasTexture(createTextLabel(node.label)),
-            depthTest: false,
-          })
-        );
-        sprite.scale.set(20, 10, 1);
-        sprite.position.set(0, 6, 0);
-        return sprite;
-      }}
-    />
+    <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "10px", display: "flex", justifyContent: "center", gap: "10px" }}>
+        <input
+          type="text"
+          placeholder="Search node..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ padding: "5px" }}
+        />
+        <button onClick={handleSearch} style={{ padding: "5px 10px" }}>Search</button>
+        
+        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <label htmlFor="depth-control">Highlight Depth:</label>
+          <input
+            id="depth-control"
+            type="number"
+            min="1"
+            max="5"
+            value={highlightDepth}
+            onChange={(e) => setHighlightDepth(parseInt(e.target.value) || 1)}
+            style={{ width: "50px", padding: "5px" }}
+          />
+          <button 
+            onClick={() => focusedNode && handleNodeClick(focusedNode)}
+            style={{ padding: "5px 10px" }}
+          >
+            Apply Depth
+          </button>
+        </div>
+      </div>
+      <ForceGraph3D
+        ref={fgRef}
+        graphData={graphData}
+        nodeLabel="label"
+        nodeAutoColorBy="id"
+        linkColor={getLinkColor}
+        linkWidth={(link) => (highlightLinks.has(link) ? 2 : 1)}
+        linkDirectionalArrowLength={3}
+        linkDirectionalArrowRelPos={1.15}
+        linkDirectionalArrowColor={(link) => (highlightLinks.has(link) ? "red" : "black")}
+        backgroundColor="#e6f2fc"
+        onNodeClick={handleNodeClick}
+        nodeThreeObject={nodeThreeObject}
+        nodeColor={getNodeColor}
+      />
+    </div>
   );
-};
-
-const createTextLabel = (text) => {
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
-  canvas.width = 256;
-  canvas.height = 128;
-  context.fillStyle = "white";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = "black";
-  context.font = "30px Arial"; // Increase the font size here
-  context.fillText(text, 20, 50);
-
-  // Add border
-  context.strokeStyle = "black"; // Border color
-  context.lineWidth = 2; // Border width
-  context.strokeRect(0, 0, canvas.width, canvas.height);
-
-  return canvas;
 };
 
 const sampleData = {
@@ -91,7 +251,7 @@ const sampleData = {
           code: "UB_COL_AS",
           children: [],
           links: [
-            { id: "node-2_1_1", content: "Payment transactions link" },
+            { id: "node-1_16", content: "Payment transactions link" },
             { id: "node-1_2", content: "Cancellation transactions link" },
             { id: "node-1_3", content: "Cost transactions link" },
             { id: "node-3_5", content: "Client invoicing link" },
@@ -197,7 +357,7 @@ const sampleData = {
         { id: "node-1_14", label: "Occurrences", code: "UB_COL_OCC", children: [], links: [] },
         { id: "node-1_15", label: "Part payments", code: "UB_COL_PP", children: [], links: [] },
         {
-          id: "node-2_1_1",
+          id: "node-1_16",
           label: "Payment transactions",
           code: "UB_COL_PT",
           children: [],
@@ -227,7 +387,7 @@ const sampleData = {
               code: "UB_ADM_W_001", 
               children: [], 
               links: [
-                { id: "node-2_1_1", content: "Payment transactions link" }
+                { id: "node-1_16", content: "Payment transactions link" }
               ] 
             },
             { id: "node-2_1_2", label: "Workflow state", code: "UB_ADM_W_002", children: [], links: [] }
@@ -305,7 +465,7 @@ const sampleData = {
             { id: "node-3_5_5", label: "Invoice BOX bulk export", code: "UB_ECO_CI_005", children: [], links: [] }
           ],
           links: [
-            { id: "node-2_1_1", content: "Payment transactions link" },
+            { id: "node-1_16", content: "Payment transactions link" },
             { id: "node-3_1_2", content: "Cost items link" },
             { id: "node-3_9", content: "Client order link" }
           ]
@@ -321,7 +481,7 @@ const sampleData = {
               code: "UB_ECO_L_001", 
               children: [], 
               links: [
-                { id: "node-2_1_1", content: "Payment transactions link" }
+                { id: "node-1_16", content: "Payment transactions link" }
               ] 
             },
             { id: "node-3_6_2", label: "Ledger update with manual journal entry", code: "UB_ECO_L_002", children: [], links: [] },
@@ -343,7 +503,7 @@ const sampleData = {
           children: [],
           links: [
             { id: "node-3_1_1", content: "Payment items link" },
-            { id: "node-2_1_1", content: "Payment transactions link" }
+            { id: "node-1_16", content: "Payment transactions link" }
           ]
         },
         {
@@ -410,7 +570,7 @@ const sampleData = {
         { id: "node-3_6_3", content: "Ledger update with remit link" },
         { id: "node-1_9_1", content: "Add transaction link" },
         { id: "node-1_9_2", content: "Edit transaction link" },
-        { id: "node-2_1_1", content: "Payment transactions link" },
+        { id: "node-1_16", content: "Payment transactions link" },
         { id: "node-1_2", content: "Cancellation transactions link" }
       ]
     }
@@ -418,11 +578,10 @@ const sampleData = {
   links: []
 };
 
+
 const App = () => {
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <GraphVisualization data={sampleData} />
-    </div>
+    <GraphVisualization data={sampleData} />
   );
 };
 
