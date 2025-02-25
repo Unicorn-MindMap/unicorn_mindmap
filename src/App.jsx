@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState, useEffect, useRef, useCallback } from "react";
 import ForceGraph3D from "react-force-graph-3d";
 import * as THREE from "three";
@@ -575,847 +576,862 @@ const GraphVisualization = ({ data }) => {
   );
 };
 
-const sampleData = {
-  id: "root-node",
-  label: "UnicornBOX",
-  children: [
-    {
-      id: "economy-node",
-      label: "Economy",
-      code: "UB_ECO",
-      description: "Economy module which enables transactions for claims",
-      children: [
-        {
-          id: "item-types-node",
-          label: "Item types",
-          code: "UB_ECO_IT",
-          description: "Transaction types",
-          children: [
-            {
-              id: "payment-items-node",
-              label: "Payment items",
-              code: "UB_ECO_IT_001",
-              description: "Payment transaction types",
-              children: [],
-              links: []
-            },
-            {
-              id: "cost-items-node",
-              label: "Cost items",
-              code: "UB_ECO_IT_002",
-              description: "Cost transaction types",
-              children: [
-                {
-                  id: "collection-fee-node",
-                  label: "Collection fee",
-                  code: "UB_ECO_IT_002_01",
-                  description: "Collection fee (Fee charged from debtor for collecting service)",
-                  children: [],
-                  links: []
-                }
-              ],
-              links: []
-            },
-            {
-              id: "cancellation-items-node",
-              label: "Cancellation items",
-              code: "UB_ECO_IT_003",
-              description: "Cancellation transaction types",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        },
-        {
-          id: "payment-registration-node",
-          label: "Payment registration",
-          code: "UB_ECO_PR",
-          description: "Recording a payment in the system",
-          children: [
-            {
-              id: "manual-payment-reg-node",
-              label: "Manual payment registration",
-              code: "UB_ECO_PR_001",
-              description: "Adding a payment record manually through frontend to the system",
-              children: [],
-              links: []
-            },
-            {
-              id: "manual-ocr-import-node",
-              label: "Manual OCR import",
-              code: "UB_ECO_PR_002",
-              description: "Importing an OCR from frontend manually",
-              children: [],
-              links: []
-            },
-            {
-              id: "payment-integrations-node",
-              label: "Payment integrations",
-              code: "UB_ECO_PR_003",
-              description: "Automatic payment import through integrations",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        },
-        {
-          id: "payment-apportionment-node",
-          label: "Payment apportionment",
-          code: "UB_ECO_PA",
-          description: "Apportioning of a received payment as per the configured distribution",
-          children: [
-            {
-              id: "payment-apportionment-edit-node",
-              label: "Payment apportionment edit",
-              code: "UB_ECO_PA_001",
-              description: "Editing an apportionment of a received payment as user prefers",
-              children: [],
-              links: []
-            },
-            {
-              id: "payment-apportionment-revert-node",
-              label: "Payment apportionment revert",
-              code: "UB_ECO_PA_002",
-              description: "Revert the apportionment if something went wrong",
-              children: [],
-              links: []
-            }
-          ],
-          links: [
-            { id: "case-mapping-node", content: "Case mapping link" }
-          ]
-        },
-        {
-          id: "case-mapping-node",
-          label: "Case mapping",
-          code: "UB_ECO_CM",
-          description: "Mapping suitable claim/claims which has remaining balance to an exceeded payment",
-          children: [],
-          links: []
-        },
-        {
-          id: "ledger-node",
-          label: "Ledger",
-          code: "UB_ECO_L",
-          description: "The general ledger that contains transactions in debt collection.",
-          children: [
-            {
-              id: "ledger-update-payment-node",
-              label: "Ledger update with payment",
-              code: "UB_ECO_L_001",
-              description: "Ledger is updated as system recevies a payment for bureau accounts.",
-              children: [],
-              links: [
-                { id: "payment-transactions-node", content: "Payment transactions link" }
-              ]
-            },
-            {
-              id: "ledger-update-manual-node",
-              label: "Ledger update with manual journal entry",
-              code: "UB_ECO_L_002",
-              description: "Additional entries can be added manually for each ledger.",
-              children: [],
-              links: []
-            },
-            {
-              id: "ledger-update-remit-node",
-              label: "Ledger update with remit",
-              code: "UB_ECO_L_003",
-              description: "Fianl ledger update after the remit.",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        },
-        {
-          id: "client-invoicing-node",
-          label: "Client invoicing",
-          code: "UB_ECO_CI",
-          description: "Overall invoicing process creditors for their due payments for bureau services",
-          children: [
-            {
-              id: "generate-client-invoice-node",
-              label: "Generate client invoice",
-              code: "UB_ECO_CI_001",
-              description: "Create client invoice",
-              children: [],
-              links: []
-            },
-            {
-              id: "credit-invoice-node",
-              label: "Credit invoice",
-              code: "UB_ECO_CI_002",
-              description: "To reduce the amount owed on a previously issued client invoice",
-              children: [],
-              links: []
-            },
-            {
-              id: "invoice-external-export-node",
-              label: "Invoice external export",
-              code: "UB_ECO_CI_003",
-              description: "Export a generated creditor invoice to an external party",
-              children: [],
-              links: []
-            },
-            {
-              id: "invoice-box-single-export-node",
-              label: "Invoice BOX single export",
-              code: "UB_ECO_CI_004",
-              description: "Export a single generated creditor invoice to UnicornBOX (which will proceed as a subcase)",
-              children: [],
-              links: []
-            },
-            {
-              id: "invoice-box-bulk-export-node",
-              label: "Invoice BOX bulk export",
-              code: "UB_ECO_CI_005",
-              description: "Export generated creditor invoice as a bulk to UnicornBOX (which will proceed as a subcase)",
-              children: [],
-              links: []
-            }
-          ],
-          links: [
-            { id: "payment-transactions-node", content: "Payment transactions link" },
-            { id: "cost-items-node", content: "Cost items link" },
-            { id: "client-order-node", content: "Client order link" }
-          ]
-        },
-        {
-          id: "generate-remit-node",
-          label: "Generate Remit",
-          code: "UB_ECO_GR",
-          description: "Generate a remit",
-          children: [],
-          links: []
-        },
-        {
-          id: "client-account-node",
-          label: "Client account",
-          code: "UB_ECO_CA",
-          description: "Bank accounts used to receive payments coming for bureau",
-          children: [],
-          links: [
-            { id: "payment-items-node", content: "Payment items link" },
-            { id: "payment-transactions-node", content: "Payment transactions link" }
-          ]
-        },
-        {
-          id: "articles-node",
-          label: "Articles",
-          code: "UB_ECO_A",
-          description: "Sellable services",
-          children: [],
-          links: []
-        },
-        {
-          id: "client-order-node",
-          label: "Client order",
-          code: "UB_ECO_CO",
-          description: "Orders generated for creditors invoicing",
-          children: [
-            {
-              id: "generate-order-node",
-              label: "Generate order",
-              code: "UB_ECO_CO_001",
-              description: "Automatically generated orders upon a call to action based on transactions that has happened during the period (after the previous order generation) for creditor belonging claims and system defined configurations",
-              children: [],
-              links: [
-                { id: "client-order-delete-node", content: "Client order delete link" }
-              ]
-            },
-            {
-              id: "manual-client-order-node",
-              label: "Manual client order",
-              code: "UB_ECO_CO_002",
-              description: "Orders created manually adding articles to charge creditors",
-              children: [],
-              links: [
-                { id: "client-order-delete-node", content: "Client order delete link" }
-              ]
-            },
-            {
-              id: "client-order-delete-node",
-              label: "Client order delete",
-              code: "UB_ECO_CO_003",
-              description: "Deletion of creditor orders",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        },
-        {
-          id: "transaction-profile-node",
-          label: "Transaction profile",
-          code: "UB_ECO_TP",
-          description: "",
-          children: [
-            {
-              id: "standard-tp-node",
-              label: "Standard transaction profile",
-              code: "UB_ECO_TP_001",
-              description: "",
-              children: [],
-              links: []
-            },
-            {
-              id: "agreement-tp-node",
-              label: "Agreement transaction profile",
-              code: "UB_ECO_TP_002",
-              description: "",
-              children: [],
-              links: []
-            }
-          ],
-          links: [
-            { id: "covering-sequence-node", content: "Covering Sequence link" }
-          ]
-        },
-        {
-          id: "covering-sequence-node",
-          label: "Covering Sequence",
-          code: "UB_ECO_CS",
-          description: "Contains set of profiles which defines the method of distributing received payments among the transactions within a claim",
-          children: [],
-          links: []
-        }
-      ],
-      links: []
-    },
-    {
-      id: "collection-node",
-      label: "Collection",
-      code: "UB_COL",
-      description: "Where a casehandler handles debt collection related processes",
-      children: [
-        {
-          id: "account-summary-node",
-          label: "Account Summary",
-          code: "UB_COL_AS",
-          description: "Showcases transactions happen upon a specific claim by grouping into set of categories.",
-          children: [],
-          links: [
-            { id: "payment-transactions-node", content: "Payment transactions link" },
-            { id: "cancellation-transactions-node", content: "Cancellation transactions link" },
-            { id: "cost-transactions-node", content: "Cost transactions link" },
-            { id: "client-invoicing-node", content: "Client invoicing link" },
-            { id: "transaction-profile-node", content: "Transaction profile link" }
-          ]
-        },
-        {
-          id: "payment-transactions-node",
-          label: "Payment transactions",
-          code: "UB_COL_PT",
-          description: "Payment transactions transpire",
-          children: [],
-          links: [
-            { id: "payment-items-node", content: "Payment items link" },
-            { id: "payment-apportionment-node", content: "Payment apportionment link" },
-            { id: "payment-registration-node", content: "Payment registration link" },
-            { id: "case-mapping-node", content: "Case mapping link" }
-          ]
-        },
-        {
-          id: "cancellation-transactions-node",
-          label: "Cancellation transactions",
-          code: "UB_COL_CAT",
-          description: "Cancellation transactions transpire",
-          children: [],
-          links: [
-            { id: "cancellation-items-node", content: "Cancellation items link" },
-            { id: "cancellation-transactions-node", content: "Self-reference link" }
-          ]
-        },
-        {
-          id: "cost-transactions-node",
-          label: "Cost transactions",
-          code: "UB_COL_COT",
-          description: "Cost transactions transpire",
-          children: [],
-          links: [
-            { id: "cost-items-node", content: "Cost items link" },
-            { id: "collection-fee-node", content: "Collection fee link" }
-          ]
-        },
-        {
-          id: "interest-rate-node",
-          label: "Interest rate",
-          code: "UB_COL_IR",
-          description: "One of the base element uses for",
-          children: [
-            {
-              id: "fixed-rate-node",
-              label: "Fixed rate",
-              code: "UB_COL_IR_001",
-              description: "Fixed interest rate applicable for interest calculation of a claim",
-              children: [
-                {
-                  id: "add-fixed-rate-io-node",
-                  label: "Add fixed rate from IO",
-                  code: "UB_COL_IR_001_01",
-                  description: "Addition of an dyanamic interest rate from Subcase/case manually registering screen",
-                  children: [],
-                  links: []
-                },
-                {
-                  id: "fixed-rate-bmd-node",
-                  label: "Fixed rate BMD value",
-                  code: "UB_COL_IR_001_02",
-                  description: "Fixed interest rate that is configured in the BMD level and if the other BMD says that 'FixedInterestRate' is yes, then the BMD configured value will be considered for claim interest calculation",
-                  children: [],
-                  links: []
-                }
-              ],
-              links: []
-            },
-            {
-              id: "no-interest-rate-node",
-              label: "No interest rate",
-              code: "UB_COL_IR_002",
-              description: "Zero interest rate applicable for interest calculation of a claim",
-              children: [],
-              links: []
-            },
-            {
-              id: "standard-rate-node",
-              label: "Standard rate",
-              code: "UB_COL_INT_003",
-              description: "One of the base element uses to calculate the claim interest.",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        },
-        {
-          id: "claim-interest-node",
-          label: "Claim interest",
-          code: "UB_COL_CI",
-          description: "Interest is applicable for a claim when it passes it's due date. From one day after the claim's due date and up until the current date, interest is calculated.",
-          children: [
-            {
-              id: "running-interest-node",
-              label: "Running interest",
-              code: "UB_COL_CI_001",
-              description: "Daily accumulating interest of a claim",
-              children: [],
-              links: []
-            },
-            {
-              id: "transaction-interest-node",
-              label: "Transaction interest",
-              code: "UB_COL_CI_002",
-              description: "One time interest added through a transaction to a claim",
-              children: [],
-              links: []
-            },
-            {
-              id: "obsolete-interest-node",
-              label: "Obsolete interest",
-              code: "UB_COL_CI_003",
-              description: "Interest amount of the claims where the claim goes beyond the obsolete date.",
-              children: [
-                {
-                  id: "auto-obsolete-on-node",
-                  label: "Automatic obsolete interest ON",
-                  code: "UB_COL_CI_003_01",
-                  description: "Enabling the obsolete interest option automatically for a claim if the claim is older than three years",
-                  children: [],
-                  links: []
-                },
-                {
-                  id: "manual-obsolete-on-node",
-                  label: "Manual obsolete interest ON",
-                  code: "UB_COL_CI_003_02",
-                  description: "Enabling the obsolete interest option manually for a claim if the claim is older than three years. If claim is less than three years, obsolete interest will not apply.",
-                  children: [],
-                  links: []
-                }
-              ],
-              links: []
-            },
-            {
-              id: "manual-interest-calc-node",
-              label: "Manual interest calculator",
-              code: "UB_COL_CI_004",
-              description: "Uses to view prediction of interest for a future date.",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        },
-        {
-          id: "transaction-node",
-          label: "Transaction",
-          code: "UB_COL_TRANS",
-          description: "Transactions (charging, payment or a cancellation transactions) that can be performed on a claim",
-          children: [
-            {
-              id: "add-transaction-node",
-              label: "Add transaction",
-              code: "UB_COL_TRANS_001",
-              description: "Adding a transaction (charging, payment or a cancellation transaction)",
-              children: [],
-              links: []
-            },
-            {
-              id: "edit-transaction-node",
-              label: "Edit transaction",
-              code: "UB_COL_TRANS_002",
-              description: "Editing a transaction (charging, payment or a cancellation transaction)",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        },
-        {
-          id: "obsolete-date-node",
-          label: "Obosolete date",
-          code: "UB_COL_OD",
-          description: "The date when a claim will get expired. To expire, claim should pass three years from claim's voucher date.",
-          children: [],
-          links: []
-        },
-        {
-          id: "enforcements-node",
-          label: "Enforcements",
-          code: "UB_COL_EN",
-          description: "To record the legal process of recovering a debt by seizing and selling the debtor's assets if they don't pay by the deadline",
-          children: [],
-          links: []
-        },
-        {
-          id: "sentences-node",
-          label: "Sentences",
-          code: "UB_COL_SEN",
-          description: "To record verdicts given by the N court mandating the debtor to settle the dues on a particular due date",
-          children: [],
-          links: []
-        },
-        {
-          id: "agreements-node",
-          label: "Agreements",
-          code: "UB_COL_AGR",
-          description: "An agreement between casehandler and the debtor to settle the claim's payments on agreed date(s)",
-          children: [
-            {
-              id: "payment-agreements-node",
-              label: "Payment agreements",
-              code: "UB_COL_AGR_001",
-              description: "An agreement between casehandler and the debtor to settle the full debt payment of a claim on a defined date",
-              children: [],
-              links: []
-            },
-            {
-              id: "part-payments-node",
-              label: "Part payments",
-              code: "UB_COL_AGR_002",
-              description: "A type of an agreement between the casehandler and the debtor to pay the claim's debt payment in installments on predefined dates",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        },
-        {
-          id: "occurrences-node",
-          label: "Occurrences",
-          code: "UB_COL_OCC",
-          description: "Special events that happen upon a claim",
-          children: [],
-          links: []
-        },
-        {
-          id: "claim-dashboard-node",
-          label: "Claim Dashboard",
-          code: "UB_COL_CD",
-          description: "Displays all the necessary widgets for the case handler at a glance to easily handle the claim functionalities",
-          children: [
-            {
-              id: "subcase-node",
-              label: "Subcase",
-              code: "UB_COL_CD_001",
-              description: "Claim that registered in the system to handle pre-collection stage functionalities",
-              children: [],
-              links: []
-            },
-            {
-              id: "case-node",
-              label: "Case",
-              code: "UB_COL_CD_002",
-              description: "Claim that registered in the system to handle collection stage functionalities",
-              children: [],
-              links: []
-            },
-            {
-              id: "ar-node",
-              label: "AR",
-              code: "UB_COL_CD_003",
-              description: "Connection between a particular debtor and a creditor",
-              children: [],
-              links: []
-            },
-            {
-              id: "creditor-node",
-              label: "Creditor",
-              code: "UB_COL_CD_004",
-              description: "Company that lends money or provides goods/services on credit and expects to be paid back",
-              children: [],
-              links: []
-            },
-            {
-              id: "creditor-group-node",
-              label: "Creditor Group",
-              code: "UB_COL_CD_005",
-              description: "Collection of creditors who often working together in legal or financial matters",
-              children: [],
-              links: []
-            },
-            {
-              id: "payment-tab-node",
-              label: "Payment Tab",
-              code: "UB_COL_CD_006",
-              description: "Showcases the payment distribution related information",
-              children: [],
-              links: []
-            },
-            {
-              id: "bureau-tab-node",
-              label: "Bureau Tab",
-              code: "UB_COL_CD_007",
-              description: "Bureau represents the debt collection agency who collects money onbehalf of creditors. Bureau tab in the system, showcases the bureau specific funtionalities",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        }
-      ],
-      links: []
-    },
-    {
-      id: "admin-node",
-      label: "Admin",
-      code: "UB_ADM",
-      description: "Admin module",
-      children: [
-        {
-          id: "workflow-node",
-          label: "Workflow",
-          code: "UB_ADM_W",
-          description: "Workflow module",
-          children: [
-            {
-              id: "workflow-event-node",
-              label: "Workflow event",
-              code: "UB_ADM_W_001",
-              description: "Event triggered in a claim of the UnicornBOX by a transaction, an operation or a feature",
-              children: [],
-              links: [
-                { id: "payment-transactions-node", content: "Payment transactions link" }
-              ]
-            },
-            {
-              id: "workflow-state-node",
-              label: "Workflow state",
-              code: "UB_ADM_W_002",
-              description: "State of a claim",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        },
-        {
-          id: "activity-node",
-          label: "Activity",
-          code: "UB_ADM_ACT",
-          description: "Is an element used in the workflow for user to achieve the case handling needs",
-          children: [
-            {
-              id: "activity-type-node",
-              label: "Activity type",
-              code: "UB_ADM_ACT_001",
-              description: "Different types of activities that uses in the system for ease of handling",
-              children: [],
-              links: []
-            },
-            {
-              id: "sp-activities-node",
-              label: "SP activities",
-              code: "UB_ADM_ACT_002",
-              description: "Activities that are created purely based on stored procedures",
-              children: [],
-              links: []
-            },
-            {
-              id: "message-activities-node",
-              label: "Message activities",
-              code: "UB_ADM_ACT_003",
-              description: "Activities that are bind with USC templates",
-              children: [],
-              links: []
-            },
-            {
-              id: "api-activities-node",
-              label: "API activities",
-              code: "UB_ADM_ACT_004",
-              description: "",
-              children: [],
-              links: []
-            },
-            {
-              id: "activity-add-node",
-              label: "Activity add",
-              code: "UB_ADM_ACT_005",
-              description: "Creation of new activities",
-              children: [],
-              links: []
-            },
-            {
-              id: "activity-edit-node",
-              label: "Activity edit",
-              code: "UB_ADM_ACT_006",
-              description: "Update existing activities",
-              children: [],
-              links: []
-            },
-            {
-              id: "activity-delete-node",
-              label: "Activity Delete",
-              code: "UB_ADM_ACT_007",
-              description: "Remove unwanted activities",
-              children: [],
-              links: []
-            },
-            {
-              id: "activity-ordering-node",
-              label: "Activity ordering",
-              code: "UB_ADM_ACT_008",
-              description: "Odering of activities before the activity execution",
-              children: [
-                {
-                  id: "manual-activity-exec-node",
-                  label: "Manual activity execution",
-                  code: "UB_ADM_ACT_008_01",
-                  description: "Execute activities manually by executing at the momemt or by executing later on",
-                  children: [],
-                  links: []
-                },
-                {
-                  id: "workflow-activity-exec-node",
-                  label: "Workflow activity execution",
-                  code: "UB_ADM_ACT_008_02",
-                  description: "Automatic activity execution by the workflow based on states and events",
-                  children: [],
-                  links: []
-                }
-              ],
-              links: []
-            },
-            {
-              id: "activity-configs-node",
-              label: "Activity configurations",
-              code: "UB_ADM_ACT_009",
-              description: "Add new activities by setting related configurations",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        }
-      ],
-      links: [
-        { id: "collection-fee-node", content: "Collection fee link" }
-      ]
-    },
-    {
-      id: "reports-node",
-      label: "Reports",
-      code: "UB_REP",
-      description: "Contains with different kinds of reports which showcases the certain data required for decision-making. Currently, defined set of reports are available and customized reports are able to make by US upon user requests.",
-      children: [],
-      links: [
-        { id: "ledger-update-remit-node", content: "Ledger update with remit link" },
-        { id: "add-transaction-node", content: "Add transaction link" },
-        { id: "edit-transaction-node", content: "Edit transaction link" },
-        { id: "payment-transactions-node", content: "Payment transactions link" },
-        { id: "cancellation-transactions-node", content: "Cancellation transactions link" }
-      ]
-    },
-    {
-      id: "usc-node",
-      label: "USC",
-      code: "UB_USC",
-      description: "Communication module",
-      children: [
-        {
-          id: "template-node",
-          label: "Template",
-          code: "UB_USC_TEMP",
-          description: "Predefined format that uses as a guide for creating PDF, email, EHF and SMSs that is needed for the debt collection proccesses",
-          children: [
-            {
-              id: "template-rule-assignment-node",
-              label: "Template rule assignment",
-              code: "UB_USC_TEMP_001",
-              description: "Also known as 'section rules' which are use to communicate to the system under which condition, the rule applicable template should be utilized and processed",
-              children: [],
-              links: []
-            }
-          ],
-          links: []
-        }
-      ],
-      links: []
-    },
-    {
-      id: "activity-execution-node",
-      label: "Activity Execution",
-      code: "UB_COL_AE",
-      description: "Uses to execute the created / defined activities",
-      children: [
-        {
-          id: "single-activity-execution-node",
-          label: "Single activity execution",
-          code: "UB_COL_AE_001",
-          description: "Execution of an activity for a single claim",
-          children: [],
-          links: []
-        },
-        {
-          id: "bulk-activity-execution-node",
-          label: "Bulk activity execution",
-          code: "UB_COL_AE_002",
-          description: "Execution of an activity for multiple claims at once",
-          children: [],
-          links: []
-        }
-      ],
-      links: []
-    },
-    {
-      id: "activity-history-node",
-      label: "Activity History",
-      code: "UB_COL_AH",
-      description: "Displays all executed, pending and failed activities along with executed notes and events in a sequencial manner",
-      children: [],
-      links: []
-    }
-  ],
-  links: []
-};
+// const sampleData = {
+//   id: "root-node",
+//   label: "UnicornBOX",
+//   children: [
+//     {
+//       id: "economy-node",
+//       label: "Economy",
+//       code: "UB_ECO",
+//       description: "Economy module which enables transactions for claims",
+//       children: [
+//         {
+//           id: "item-types-node",
+//           label: "Item types",
+//           code: "UB_ECO_IT",
+//           description: "Transaction types",
+//           children: [
+//             {
+//               id: "payment-items-node",
+//               label: "Payment items",
+//               code: "UB_ECO_IT_001",
+//               description: "Payment transaction types",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "cost-items-node",
+//               label: "Cost items",
+//               code: "UB_ECO_IT_002",
+//               description: "Cost transaction types",
+//               children: [
+//                 {
+//                   id: "collection-fee-node",
+//                   label: "Collection fee",
+//                   code: "UB_ECO_IT_002_01",
+//                   description: "Collection fee (Fee charged from debtor for collecting service)",
+//                   children: [],
+//                   links: []
+//                 }
+//               ],
+//               links: []
+//             },
+//             {
+//               id: "cancellation-items-node",
+//               label: "Cancellation items",
+//               code: "UB_ECO_IT_003",
+//               description: "Cancellation transaction types",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         },
+//         {
+//           id: "payment-registration-node",
+//           label: "Payment registration",
+//           code: "UB_ECO_PR",
+//           description: "Recording a payment in the system",
+//           children: [
+//             {
+//               id: "manual-payment-reg-node",
+//               label: "Manual payment registration",
+//               code: "UB_ECO_PR_001",
+//               description: "Adding a payment record manually through frontend to the system",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "manual-ocr-import-node",
+//               label: "Manual OCR import",
+//               code: "UB_ECO_PR_002",
+//               description: "Importing an OCR from frontend manually",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "payment-integrations-node",
+//               label: "Payment integrations",
+//               code: "UB_ECO_PR_003",
+//               description: "Automatic payment import through integrations",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         },
+//         {
+//           id: "payment-apportionment-node",
+//           label: "Payment apportionment",
+//           code: "UB_ECO_PA",
+//           description: "Apportioning of a received payment as per the configured distribution",
+//           children: [
+//             {
+//               id: "payment-apportionment-edit-node",
+//               label: "Payment apportionment edit",
+//               code: "UB_ECO_PA_001",
+//               description: "Editing an apportionment of a received payment as user prefers",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "payment-apportionment-revert-node",
+//               label: "Payment apportionment revert",
+//               code: "UB_ECO_PA_002",
+//               description: "Revert the apportionment if something went wrong",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: [
+//             { id: "case-mapping-node", content: "Case mapping link" }
+//           ]
+//         },
+//         {
+//           id: "case-mapping-node",
+//           label: "Case mapping",
+//           code: "UB_ECO_CM",
+//           description: "Mapping suitable claim/claims which has remaining balance to an exceeded payment",
+//           children: [],
+//           links: []
+//         },
+//         {
+//           id: "ledger-node",
+//           label: "Ledger",
+//           code: "UB_ECO_L",
+//           description: "The general ledger that contains transactions in debt collection.",
+//           children: [
+//             {
+//               id: "ledger-update-payment-node",
+//               label: "Ledger update with payment",
+//               code: "UB_ECO_L_001",
+//               description: "Ledger is updated as system recevies a payment for bureau accounts.",
+//               children: [],
+//               links: [
+//                 { id: "payment-transactions-node", content: "Payment transactions link" }
+//               ]
+//             },
+//             {
+//               id: "ledger-update-manual-node",
+//               label: "Ledger update with manual journal entry",
+//               code: "UB_ECO_L_002",
+//               description: "Additional entries can be added manually for each ledger.",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "ledger-update-remit-node",
+//               label: "Ledger update with remit",
+//               code: "UB_ECO_L_003",
+//               description: "Fianl ledger update after the remit.",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         },
+//         {
+//           id: "client-invoicing-node",
+//           label: "Client invoicing",
+//           code: "UB_ECO_CI",
+//           description: "Overall invoicing process creditors for their due payments for bureau services",
+//           children: [
+//             {
+//               id: "generate-client-invoice-node",
+//               label: "Generate client invoice",
+//               code: "UB_ECO_CI_001",
+//               description: "Create client invoice",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "credit-invoice-node",
+//               label: "Credit invoice",
+//               code: "UB_ECO_CI_002",
+//               description: "To reduce the amount owed on a previously issued client invoice",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "invoice-external-export-node",
+//               label: "Invoice external export",
+//               code: "UB_ECO_CI_003",
+//               description: "Export a generated creditor invoice to an external party",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "invoice-box-single-export-node",
+//               label: "Invoice BOX single export",
+//               code: "UB_ECO_CI_004",
+//               description: "Export a single generated creditor invoice to UnicornBOX (which will proceed as a subcase)",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "invoice-box-bulk-export-node",
+//               label: "Invoice BOX bulk export",
+//               code: "UB_ECO_CI_005",
+//               description: "Export generated creditor invoice as a bulk to UnicornBOX (which will proceed as a subcase)",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: [
+//             { id: "payment-transactions-node", content: "Payment transactions link" },
+//             { id: "cost-items-node", content: "Cost items link" },
+//             { id: "client-order-node", content: "Client order link" }
+//           ]
+//         },
+//         {
+//           id: "generate-remit-node",
+//           label: "Generate Remit",
+//           code: "UB_ECO_GR",
+//           description: "Generate a remit",
+//           children: [],
+//           links: []
+//         },
+//         {
+//           id: "client-account-node",
+//           label: "Client account",
+//           code: "UB_ECO_CA",
+//           description: "Bank accounts used to receive payments coming for bureau",
+//           children: [],
+//           links: [
+//             { id: "payment-items-node", content: "Payment items link" },
+//             { id: "payment-transactions-node", content: "Payment transactions link" }
+//           ]
+//         },
+//         {
+//           id: "articles-node",
+//           label: "Articles",
+//           code: "UB_ECO_A",
+//           description: "Sellable services",
+//           children: [],
+//           links: []
+//         },
+//         {
+//           id: "client-order-node",
+//           label: "Client order",
+//           code: "UB_ECO_CO",
+//           description: "Orders generated for creditors invoicing",
+//           children: [
+//             {
+//               id: "generate-order-node",
+//               label: "Generate order",
+//               code: "UB_ECO_CO_001",
+//               description: "Automatically generated orders upon a call to action based on transactions that has happened during the period (after the previous order generation) for creditor belonging claims and system defined configurations",
+//               children: [],
+//               links: [
+//                 { id: "client-order-delete-node", content: "Client order delete link" }
+//               ]
+//             },
+//             {
+//               id: "manual-client-order-node",
+//               label: "Manual client order",
+//               code: "UB_ECO_CO_002",
+//               description: "Orders created manually adding articles to charge creditors",
+//               children: [],
+//               links: [
+//                 { id: "client-order-delete-node", content: "Client order delete link" }
+//               ]
+//             },
+//             {
+//               id: "client-order-delete-node",
+//               label: "Client order delete",
+//               code: "UB_ECO_CO_003",
+//               description: "Deletion of creditor orders",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         },
+//         {
+//           id: "transaction-profile-node",
+//           label: "Transaction profile",
+//           code: "UB_ECO_TP",
+//           description: "",
+//           children: [
+//             {
+//               id: "standard-tp-node",
+//               label: "Standard transaction profile",
+//               code: "UB_ECO_TP_001",
+//               description: "",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "agreement-tp-node",
+//               label: "Agreement transaction profile",
+//               code: "UB_ECO_TP_002",
+//               description: "",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: [
+//             { id: "covering-sequence-node", content: "Covering Sequence link" }
+//           ]
+//         },
+//         {
+//           id: "covering-sequence-node",
+//           label: "Covering Sequence",
+//           code: "UB_ECO_CS",
+//           description: "Contains set of profiles which defines the method of distributing received payments among the transactions within a claim",
+//           children: [],
+//           links: []
+//         }
+//       ],
+//       links: []
+//     },
+//     {
+//       id: "collection-node",
+//       label: "Collection",
+//       code: "UB_COL",
+//       description: "Where a casehandler handles debt collection related processes",
+//       children: [
+//         {
+//           id: "account-summary-node",
+//           label: "Account Summary",
+//           code: "UB_COL_AS",
+//           description: "Showcases transactions happen upon a specific claim by grouping into set of categories.",
+//           children: [],
+//           links: [
+//             { id: "payment-transactions-node", content: "Payment transactions link" },
+//             { id: "cancellation-transactions-node", content: "Cancellation transactions link" },
+//             { id: "cost-transactions-node", content: "Cost transactions link" },
+//             { id: "client-invoicing-node", content: "Client invoicing link" },
+//             { id: "transaction-profile-node", content: "Transaction profile link" }
+//           ]
+//         },
+//         {
+//           id: "payment-transactions-node",
+//           label: "Payment transactions",
+//           code: "UB_COL_PT",
+//           description: "Payment transactions transpire",
+//           children: [],
+//           links: [
+//             { id: "payment-items-node", content: "Payment items link" },
+//             { id: "payment-apportionment-node", content: "Payment apportionment link" },
+//             { id: "payment-registration-node", content: "Payment registration link" },
+//             { id: "case-mapping-node", content: "Case mapping link" }
+//           ]
+//         },
+//         {
+//           id: "cancellation-transactions-node",
+//           label: "Cancellation transactions",
+//           code: "UB_COL_CAT",
+//           description: "Cancellation transactions transpire",
+//           children: [],
+//           links: [
+//             { id: "cancellation-items-node", content: "Cancellation items link" },
+//             { id: "cancellation-transactions-node", content: "Self-reference link" }
+//           ]
+//         },
+//         {
+//           id: "cost-transactions-node",
+//           label: "Cost transactions",
+//           code: "UB_COL_COT",
+//           description: "Cost transactions transpire",
+//           children: [],
+//           links: [
+//             { id: "cost-items-node", content: "Cost items link" },
+//             { id: "collection-fee-node", content: "Collection fee link" }
+//           ]
+//         },
+//         {
+//           id: "interest-rate-node",
+//           label: "Interest rate",
+//           code: "UB_COL_IR",
+//           description: "One of the base element uses for",
+//           children: [
+//             {
+//               id: "fixed-rate-node",
+//               label: "Fixed rate",
+//               code: "UB_COL_IR_001",
+//               description: "Fixed interest rate applicable for interest calculation of a claim",
+//               children: [
+//                 {
+//                   id: "add-fixed-rate-io-node",
+//                   label: "Add fixed rate from IO",
+//                   code: "UB_COL_IR_001_01",
+//                   description: "Addition of an dyanamic interest rate from Subcase/case manually registering screen",
+//                   children: [],
+//                   links: []
+//                 },
+//                 {
+//                   id: "fixed-rate-bmd-node",
+//                   label: "Fixed rate BMD value",
+//                   code: "UB_COL_IR_001_02",
+//                   description: "Fixed interest rate that is configured in the BMD level and if the other BMD says that 'FixedInterestRate' is yes, then the BMD configured value will be considered for claim interest calculation",
+//                   children: [],
+//                   links: []
+//                 }
+//               ],
+//               links: []
+//             },
+//             {
+//               id: "no-interest-rate-node",
+//               label: "No interest rate",
+//               code: "UB_COL_IR_002",
+//               description: "Zero interest rate applicable for interest calculation of a claim",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "standard-rate-node",
+//               label: "Standard rate",
+//               code: "UB_COL_INT_003",
+//               description: "One of the base element uses to calculate the claim interest.",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         },
+//         {
+//           id: "claim-interest-node",
+//           label: "Claim interest",
+//           code: "UB_COL_CI",
+//           description: "Interest is applicable for a claim when it passes it's due date. From one day after the claim's due date and up until the current date, interest is calculated.",
+//           children: [
+//             {
+//               id: "running-interest-node",
+//               label: "Running interest",
+//               code: "UB_COL_CI_001",
+//               description: "Daily accumulating interest of a claim",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "transaction-interest-node",
+//               label: "Transaction interest",
+//               code: "UB_COL_CI_002",
+//               description: "One time interest added through a transaction to a claim",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "obsolete-interest-node",
+//               label: "Obsolete interest",
+//               code: "UB_COL_CI_003",
+//               description: "Interest amount of the claims where the claim goes beyond the obsolete date.",
+//               children: [
+//                 {
+//                   id: "auto-obsolete-on-node",
+//                   label: "Automatic obsolete interest ON",
+//                   code: "UB_COL_CI_003_01",
+//                   description: "Enabling the obsolete interest option automatically for a claim if the claim is older than three years",
+//                   children: [],
+//                   links: []
+//                 },
+//                 {
+//                   id: "manual-obsolete-on-node",
+//                   label: "Manual obsolete interest ON",
+//                   code: "UB_COL_CI_003_02",
+//                   description: "Enabling the obsolete interest option manually for a claim if the claim is older than three years. If claim is less than three years, obsolete interest will not apply.",
+//                   children: [],
+//                   links: []
+//                 }
+//               ],
+//               links: []
+//             },
+//             {
+//               id: "manual-interest-calc-node",
+//               label: "Manual interest calculator",
+//               code: "UB_COL_CI_004",
+//               description: "Uses to view prediction of interest for a future date.",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         },
+//         {
+//           id: "transaction-node",
+//           label: "Transaction",
+//           code: "UB_COL_TRANS",
+//           description: "Transactions (charging, payment or a cancellation transactions) that can be performed on a claim",
+//           children: [
+//             {
+//               id: "add-transaction-node",
+//               label: "Add transaction",
+//               code: "UB_COL_TRANS_001",
+//               description: "Adding a transaction (charging, payment or a cancellation transaction)",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "edit-transaction-node",
+//               label: "Edit transaction",
+//               code: "UB_COL_TRANS_002",
+//               description: "Editing a transaction (charging, payment or a cancellation transaction)",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         },
+//         {
+//           id: "obsolete-date-node",
+//           label: "Obosolete date",
+//           code: "UB_COL_OD",
+//           description: "The date when a claim will get expired. To expire, claim should pass three years from claim's voucher date.",
+//           children: [],
+//           links: []
+//         },
+//         {
+//           id: "enforcements-node",
+//           label: "Enforcements",
+//           code: "UB_COL_EN",
+//           description: "To record the legal process of recovering a debt by seizing and selling the debtor's assets if they don't pay by the deadline",
+//           children: [],
+//           links: []
+//         },
+//         {
+//           id: "sentences-node",
+//           label: "Sentences",
+//           code: "UB_COL_SEN",
+//           description: "To record verdicts given by the N court mandating the debtor to settle the dues on a particular due date",
+//           children: [],
+//           links: []
+//         },
+//         {
+//           id: "agreements-node",
+//           label: "Agreements",
+//           code: "UB_COL_AGR",
+//           description: "An agreement between casehandler and the debtor to settle the claim's payments on agreed date(s)",
+//           children: [
+//             {
+//               id: "payment-agreements-node",
+//               label: "Payment agreements",
+//               code: "UB_COL_AGR_001",
+//               description: "An agreement between casehandler and the debtor to settle the full debt payment of a claim on a defined date",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "part-payments-node",
+//               label: "Part payments",
+//               code: "UB_COL_AGR_002",
+//               description: "A type of an agreement between the casehandler and the debtor to pay the claim's debt payment in installments on predefined dates",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         },
+//         {
+//           id: "occurrences-node",
+//           label: "Occurrences",
+//           code: "UB_COL_OCC",
+//           description: "Special events that happen upon a claim",
+//           children: [],
+//           links: []
+//         },
+//         {
+//           id: "claim-dashboard-node",
+//           label: "Claim Dashboard",
+//           code: "UB_COL_CD",
+//           description: "Displays all the necessary widgets for the case handler at a glance to easily handle the claim functionalities",
+//           children: [
+//             {
+//               id: "subcase-node",
+//               label: "Subcase",
+//               code: "UB_COL_CD_001",
+//               description: "Claim that registered in the system to handle pre-collection stage functionalities",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "case-node",
+//               label: "Case",
+//               code: "UB_COL_CD_002",
+//               description: "Claim that registered in the system to handle collection stage functionalities",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "ar-node",
+//               label: "AR",
+//               code: "UB_COL_CD_003",
+//               description: "Connection between a particular debtor and a creditor",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "creditor-node",
+//               label: "Creditor",
+//               code: "UB_COL_CD_004",
+//               description: "Company that lends money or provides goods/services on credit and expects to be paid back",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "creditor-group-node",
+//               label: "Creditor Group",
+//               code: "UB_COL_CD_005",
+//               description: "Collection of creditors who often working together in legal or financial matters",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "payment-tab-node",
+//               label: "Payment Tab",
+//               code: "UB_COL_CD_006",
+//               description: "Showcases the payment distribution related information",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "bureau-tab-node",
+//               label: "Bureau Tab",
+//               code: "UB_COL_CD_007",
+//               description: "Bureau represents the debt collection agency who collects money onbehalf of creditors. Bureau tab in the system, showcases the bureau specific funtionalities",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         }
+//       ],
+//       links: []
+//     },
+//     {
+//       id: "admin-node",
+//       label: "Admin",
+//       code: "UB_ADM",
+//       description: "Admin module",
+//       children: [
+//         {
+//           id: "workflow-node",
+//           label: "Workflow",
+//           code: "UB_ADM_W",
+//           description: "Workflow module",
+//           children: [
+//             {
+//               id: "workflow-event-node",
+//               label: "Workflow event",
+//               code: "UB_ADM_W_001",
+//               description: "Event triggered in a claim of the UnicornBOX by a transaction, an operation or a feature",
+//               children: [],
+//               links: [
+//                 { id: "payment-transactions-node", content: "Payment transactions link" }
+//               ]
+//             },
+//             {
+//               id: "workflow-state-node",
+//               label: "Workflow state",
+//               code: "UB_ADM_W_002",
+//               description: "State of a claim",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         },
+//         {
+//           id: "activity-node",
+//           label: "Activity",
+//           code: "UB_ADM_ACT",
+//           description: "Is an element used in the workflow for user to achieve the case handling needs",
+//           children: [
+//             {
+//               id: "activity-type-node",
+//               label: "Activity type",
+//               code: "UB_ADM_ACT_001",
+//               description: "Different types of activities that uses in the system for ease of handling",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "sp-activities-node",
+//               label: "SP activities",
+//               code: "UB_ADM_ACT_002",
+//               description: "Activities that are created purely based on stored procedures",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "message-activities-node",
+//               label: "Message activities",
+//               code: "UB_ADM_ACT_003",
+//               description: "Activities that are bind with USC templates",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "api-activities-node",
+//               label: "API activities",
+//               code: "UB_ADM_ACT_004",
+//               description: "",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "activity-add-node",
+//               label: "Activity add",
+//               code: "UB_ADM_ACT_005",
+//               description: "Creation of new activities",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "activity-edit-node",
+//               label: "Activity edit",
+//               code: "UB_ADM_ACT_006",
+//               description: "Update existing activities",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "activity-delete-node",
+//               label: "Activity Delete",
+//               code: "UB_ADM_ACT_007",
+//               description: "Remove unwanted activities",
+//               children: [],
+//               links: []
+//             },
+//             {
+//               id: "activity-ordering-node",
+//               label: "Activity ordering",
+//               code: "UB_ADM_ACT_008",
+//               description: "Odering of activities before the activity execution",
+//               children: [
+//                 {
+//                   id: "manual-activity-exec-node",
+//                   label: "Manual activity execution",
+//                   code: "UB_ADM_ACT_008_01",
+//                   description: "Execute activities manually by executing at the momemt or by executing later on",
+//                   children: [],
+//                   links: []
+//                 },
+//                 {
+//                   id: "workflow-activity-exec-node",
+//                   label: "Workflow activity execution",
+//                   code: "UB_ADM_ACT_008_02",
+//                   description: "Automatic activity execution by the workflow based on states and events",
+//                   children: [],
+//                   links: []
+//                 }
+//               ],
+//               links: []
+//             },
+//             {
+//               id: "activity-configs-node",
+//               label: "Activity configurations",
+//               code: "UB_ADM_ACT_009",
+//               description: "Add new activities by setting related configurations",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         }
+//       ],
+//       links: [
+//         { id: "collection-fee-node", content: "Collection fee link" }
+//       ]
+//     },
+//     {
+//       id: "reports-node",
+//       label: "Reports",
+//       code: "UB_REP",
+//       description: "Contains with different kinds of reports which showcases the certain data required for decision-making. Currently, defined set of reports are available and customized reports are able to make by US upon user requests.",
+//       children: [],
+//       links: [
+//         { id: "ledger-update-remit-node", content: "Ledger update with remit link" },
+//         { id: "add-transaction-node", content: "Add transaction link" },
+//         { id: "edit-transaction-node", content: "Edit transaction link" },
+//         { id: "payment-transactions-node", content: "Payment transactions link" },
+//         { id: "cancellation-transactions-node", content: "Cancellation transactions link" }
+//       ]
+//     },
+//     {
+//       id: "usc-node",
+//       label: "USC",
+//       code: "UB_USC",
+//       description: "Communication module",
+//       children: [
+//         {
+//           id: "template-node",
+//           label: "Template",
+//           code: "UB_USC_TEMP",
+//           description: "Predefined format that uses as a guide for creating PDF, email, EHF and SMSs that is needed for the debt collection proccesses",
+//           children: [
+//             {
+//               id: "template-rule-assignment-node",
+//               label: "Template rule assignment",
+//               code: "UB_USC_TEMP_001",
+//               description: "Also known as 'section rules' which are use to communicate to the system under which condition, the rule applicable template should be utilized and processed",
+//               children: [],
+//               links: []
+//             }
+//           ],
+//           links: []
+//         }
+//       ],
+//       links: []
+//     },
+//     {
+//       id: "activity-execution-node",
+//       label: "Activity Execution",
+//       code: "UB_COL_AE",
+//       description: "Uses to execute the created / defined activities",
+//       children: [
+//         {
+//           id: "single-activity-execution-node",
+//           label: "Single activity execution",
+//           code: "UB_COL_AE_001",
+//           description: "Execution of an activity for a single claim",
+//           children: [],
+//           links: []
+//         },
+//         {
+//           id: "bulk-activity-execution-node",
+//           label: "Bulk activity execution",
+//           code: "UB_COL_AE_002",
+//           description: "Execution of an activity for multiple claims at once",
+//           children: [],
+//           links: []
+//         }
+//       ],
+//       links: []
+//     },
+//     {
+//       id: "activity-history-node",
+//       label: "Activity History",
+//       code: "UB_COL_AH",
+//       description: "Displays all executed, pending and failed activities along with executed notes and events in a sequencial manner",
+//       children: [],
+//       links: []
+//     }
+//   ],
+//   links: []
+// };
 
 
 const App = () => {
+  const [dataReceved, setDataReceved ] = useState([]);
+  const getData = async() => {
+      axios.get('http://localhost:5261/api/Graph').then((response) => {
+       console.log(response.data);
+       setDataReceved(response.data['rootNode']);
+       console.log('dataReceved', dataReceved);
+      // return response.data;
+    }).catch((error) => { console.log(error); }
+    );
+  }
+  console.log('data    Receved', dataReceved['rootNode']);
+
+useEffect(() => {
+  getData()
+}, [])
+
   return (
-    <GraphVisualization data={sampleData} />
+    <GraphVisualization data={dataReceved} />
   );
 };
-
 export default App;
