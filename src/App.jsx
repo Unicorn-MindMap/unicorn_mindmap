@@ -307,8 +307,9 @@ const GraphVisualization = ({ data }) => {
         nodeAutoColorBy="id"
         linkColor={getLinkColor}
         linkWidth={(link) => (highlightLinks.has(link) ? 2 : 1)}
-        linkDirectionalArrowLength={3}
-        linkDirectionalArrowRelPos={1.15}
+        linkDirectionalArrowLength={0}
+        // linkDirectionalArrowLength={3}
+        // linkDirectionalArrowRelPos={1.15}
         linkDirectionalArrowColor={(link) => (highlightLinks.has(link) ? "red" : "black")}
         backgroundColor="#e6f2fc"
         onNodeClick={handleNodeClick}
