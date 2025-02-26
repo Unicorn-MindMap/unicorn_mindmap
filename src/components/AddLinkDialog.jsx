@@ -17,10 +17,9 @@ const AddLinkDialog = ({ getdata, nodedetails, onClose, onSave }) => {
             setLoading(true);
             const newLink = {
                 sourceNodeId: nodedetails.id,
-                targetNodeId: targetId,
+                targetNodeLabel: targetId,
                 content: description,
             };
-
             const response = await axios.post(
                 "https://localhost:7029/api/Graph/links",
                 newLink
@@ -88,7 +87,7 @@ const AddLinkDialog = ({ getdata, nodedetails, onClose, onSave }) => {
                 </div>
                 <div style={{ marginBottom: "20px", maxWidth: "96%" }}>
                     <label>
-                        Target Node ID:
+                        Target Node:
                         <input
                             type="text"
                             value={targetId}
