@@ -15,6 +15,8 @@ const GraphVisualization = ({ data, getdata }) => {
   const [highlightDepth, setHighlightDepth] = useState(0);
   const [showNodeDetails, setShowNodeDetails] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(null);
+  const [draggingEnabled, setDraggingEnabled] = useState(true);
+  const [fixedNodes, setFixedNodes] = useState(new Set());
 
   useEffect(() => {
     const nodes = [];
@@ -169,6 +171,14 @@ const GraphVisualization = ({ data, getdata }) => {
     },
     [getConnectedNodesAndLinks, focusedNode]
   );
+
+   //Handle node drag end to fix node position
+   const handleNodeDragEnd = useCallback((node) => {
+    // Fix node position after drag
+    node.fx = node.x;
+    node.fy = node.y;
+    node.fz = node.z;
+  }, []);
 
   // Update highlights when depth changes
   useEffect(() => {
@@ -571,6 +581,7 @@ const GraphVisualization = ({ data, getdata }) => {
         onNodeClick={handleNodeClick}
         nodeThreeObject={nodeThreeObject}
         nodeColor={getNodeColor}
+        onNodeDragEnd={handleNodeDragEnd}
       />
 
       {/* Node Details Dialog */}
