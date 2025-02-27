@@ -525,7 +525,7 @@ const NodeDetailsDialog = ({
                 color: "#34495e",
               }}
             >
-              Links Content
+              Source Links Content
             </h3>
             <div
               style={{
@@ -559,12 +559,12 @@ const NodeDetailsDialog = ({
                     <th
                       style={{
                         textAlign: "center",
-                        padding: "12px",
+                        
                         borderBottom: "2px solid #cbd5e0",
                         width: "60px",
                       }}
                     >
-                      Action
+                      
                     </th>
                   </tr>
                 </thead>
