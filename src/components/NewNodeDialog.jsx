@@ -1,12 +1,11 @@
 import axios from 'axios';
-import { Children, useState } from 'react';
+import { useState } from 'react';
 import {toast} from 'react-hot-toast';
 
 const NewNodeDialog = ({ onClose, onSave, nodeDetails, graphData, getdata }) => {
   const [label, setLabel] = useState('');
   const [description, setDescription] = useState('');
   const [code, setCode] = useState('');
-  console.log(nodeDetails.id);
   const handleSave = async () => {
     
     try {

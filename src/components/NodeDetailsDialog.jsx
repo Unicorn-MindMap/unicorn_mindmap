@@ -4,6 +4,7 @@ import AddLinkDialog from "./AddLinkDialog";
 import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
+import UpdateNodeDialog from "./UpdateNodeDialog";
 
 const NodeDetailsDialog = ({
   nodeDetails,
@@ -18,6 +19,7 @@ const NodeDetailsDialog = ({
   onReleaseNode
 }) => {
   const [isNewNodeDialogOpen, setIsNewNodeDialogOpen] = useState(false);
+  const [isUpdateNodeDialogOpen, setIsUpdateNodeDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isNewLinkDialogOpen, setIsNewLinkDialogOpen] = useState(false);
@@ -65,6 +67,14 @@ const NodeDetailsDialog = ({
     await refreshNodeDetails();
     setIsNewNodeDialogOpen(false);
   };
+  const handleUpdateNodeSave = async (updatedNode) => {
+    // Handle updated node logic here
+    await getData();
+    // After updating a node, refresh the current dialog
+    await refreshNodeDetails();
+    setIsUpdateNodeDialogOpen(false);
+  };
+
 
   const handleNewLinkSave = async (newLink) => {
     // Handle new link creation logic here
@@ -176,7 +186,7 @@ const NodeDetailsDialog = ({
           AddLink
         </button>
         <button
-          onClick={() => setIsNewNodeDialogOpen(true)}
+          onClick={() => setIsUpdateNodeDialogOpen(true)}
           style={{
             fontSize: "13px",
             backgroundColor: "#e3f2fd",
@@ -657,6 +667,14 @@ const NodeDetailsDialog = ({
           nodeDetails={currentNodeDetails}
           onClose={() => setIsNewNodeDialogOpen(false)}
           onSave={handleNewNodeSave}
+        />
+      )}
+      {isUpdateNodeDialogOpen && (
+        <UpdateNodeDialog
+          getdata={getData}
+          nodeDetails={currentNodeDetails}
+          onClose={() => setIsUpdateNodeDialogOpen(false)}
+          onSave={handleUpdateNodeSave}
         />
       )}
       {isNewLinkDialogOpen && (
