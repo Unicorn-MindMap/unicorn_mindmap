@@ -6,6 +6,7 @@ import NodeDetailsDialog from "./NodeDetailsDialog";
 const GraphVisualization = ({ data, getdata }) => {
   const fgRef = useRef();
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [displayData, setDisplayData] = useState({ nodes: [], links: [] });
   const [highlightNodes, setHighlightNodes] = useState(new Set());
   const [highlightLinks, setHighlightLinks] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,6 +59,8 @@ const GraphVisualization = ({ data, getdata }) => {
 
     traverseNodes(data);
     setGraphData({ nodes, links });
+    // Initially show all nodes
+    setDisplayData({ nodes, links });
   }, [data]);
 
   // Generate suggestions based on user input
@@ -135,6 +138,41 @@ const GraphVisualization = ({ data, getdata }) => {
     [graphData, highlightDepth]
   );
 
+  // Update display data based on focused node and highlight depth
+  useEffect(() => {
+    if (focusedNode) {
+      // Get focused node
+      const focusedNodeObj = graphData.nodes.find(n => n.id === focusedNode.id);
+      
+      // Get connected nodes and links up to specified depth
+      const connected = getConnectedNodesAndLinks(focusedNode.id);
+      
+      // Create a new set with the focused node and connected nodes
+      const nodesToShow = new Set([focusedNodeObj]);
+      connected.nodes.forEach(node => nodesToShow.add(node));
+      
+      // Filter links to only include those between visible nodes
+      const linksToShow = Array.from(connected.links);
+      
+      // Create the filtered display data
+      const filteredNodes = Array.from(nodesToShow);
+      
+      setDisplayData({
+        nodes: [focusedNodeObj, ...Array.from(connected.nodes)],
+        links: linksToShow
+      });
+      
+      // Update highlight sets for styling
+      setHighlightNodes(new Set(connected.nodes));
+      setHighlightLinks(new Set(connected.links));
+    } else {
+      // If no node is focused, show all nodes
+      setDisplayData(graphData);
+      setHighlightNodes(new Set());
+      setHighlightLinks(new Set());
+    }
+  }, [focusedNode, highlightDepth, getConnectedNodesAndLinks, graphData]);
+
   const handleNodeClick = useCallback(
     (node) => {
       // If the node is already focused, show the details dialog
@@ -144,20 +182,7 @@ const GraphVisualization = ({ data, getdata }) => {
         return;
       }
 
-      const newHighlightNodes = new Set();
-      const newHighlightLinks = new Set();
-
       setFocusedNode(node);
-
-      // Get connected nodes and links up to specified depth
-      const connected = getConnectedNodesAndLinks(node.id);
-
-      // Add all connected nodes and links to highlight sets
-      connected.nodes.forEach((n) => newHighlightNodes.add(n));
-      connected.links.forEach((l) => newHighlightLinks.add(l));
-
-      setHighlightNodes(newHighlightNodes);
-      setHighlightLinks(newHighlightLinks);
 
       // Focus on clicked node
       const distance = 120;
@@ -169,34 +194,16 @@ const GraphVisualization = ({ data, getdata }) => {
         3000
       );
     },
-    [getConnectedNodesAndLinks, focusedNode]
+    [focusedNode]
   );
 
-   //Handle node drag end to fix node position
-   const handleNodeDragEnd = useCallback((node) => {
+  // Handle node drag end to fix node position
+  const handleNodeDragEnd = useCallback((node) => {
     // Fix node position after drag
     node.fx = node.x;
     node.fy = node.y;
     node.fz = node.z;
   }, []);
-
-  // Update highlights when depth changes
-  useEffect(() => {
-    if (focusedNode) {
-      const newHighlightNodes = new Set();
-      const newHighlightLinks = new Set();
-
-      // Get connected nodes and links up to specified depth
-      const connected = getConnectedNodesAndLinks(focusedNode.id);
-
-      // Add all connected nodes and links to highlight sets
-      connected.nodes.forEach((n) => newHighlightNodes.add(n));
-      connected.links.forEach((l) => newHighlightLinks.add(l));
-
-      setHighlightNodes(newHighlightNodes);
-      setHighlightLinks(newHighlightLinks);
-    }
-  }, [highlightDepth, focusedNode, getConnectedNodesAndLinks]);
 
   // Handle selecting a suggestion
   const handleSelectSuggestion = (node) => {
@@ -360,6 +367,13 @@ const GraphVisualization = ({ data, getdata }) => {
   const closeNodeDetails = () => {
     setShowNodeDetails(false);
     setNodeDetails(null);
+  };
+
+  // Function to reset view to show all nodes
+  const resetView = () => {
+    setFocusedNode(null);
+    setDisplayData(graphData);
+    fgRef.current.zoomToFit(1000);
   };
 
   // Function to get all related nodes (parent, children, linked)
@@ -565,14 +579,27 @@ const GraphVisualization = ({ data, getdata }) => {
           />
           <span>{highlightDepth}</span>
         </div>
+
+        {focusedNode && (
+          <button
+            onClick={resetView}
+            style={{
+              padding: "5px 10px",
+              backgroundColor: "#f0f0f0",
+            }}
+          >
+            Show All Nodes
+          </button>
+        )}
       </div>
+
       <ForceGraph3D
         ref={fgRef}
-        graphData={graphData}
+        graphData={displayData} // Use the filtered display data instead of full graph data
         nodeLabel="label"
         nodeAutoColorBy="id"
         linkColor={getLinkColor}
-        linkWidth={(link) => (highlightLinks.has(link) ? 0.5 : 0.5)}
+        linkWidth={(link) => (highlightLinks.has(link) ? 0.2 : 0.2)}
         linkDirectionalArrowLength={0}
         linkDirectionalArrowColor={(link) =>
           highlightLinks.has(link) ? "red" : "black"
