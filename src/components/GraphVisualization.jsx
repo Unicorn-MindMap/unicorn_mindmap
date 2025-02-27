@@ -16,8 +16,8 @@ const GraphVisualization = ({ data, getdata }) => {
   const [highlightDepth, setHighlightDepth] = useState(0);
   const [showNodeDetails, setShowNodeDetails] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(null);
-  const [draggingEnabled, setDraggingEnabled] = useState(true);
-  const [fixedNodes, setFixedNodes] = useState(new Set());
+  // const [draggingEnabled, setDraggingEnabled] = useState(true);
+  // const [fixedNodes, setFixedNodes] = useState(new Set());
 
   useEffect(() => {
     const nodes = [];
@@ -247,6 +247,7 @@ const GraphVisualization = ({ data, getdata }) => {
     setShowSuggestions(false);
   };
 
+  //node
   const nodeThreeObject = useCallback(
     (node) => {
       const isHighlighted = highlightNodes.has(node);
@@ -260,7 +261,8 @@ const GraphVisualization = ({ data, getdata }) => {
           depthTest: false,
         })
       );
-      sprite.scale.set(20, 10, 1);
+      //size of the node
+      sprite.scale.set(40, 20, 1);
       sprite.position.set(0, 6, 0);
       return sprite;
     },
@@ -273,13 +275,26 @@ const GraphVisualization = ({ data, getdata }) => {
     canvas.width = 256;
     canvas.height = 128;
 
-    // Create gradient background
-    const gradient = context.createLinearGradient(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
+
+    // Measure text to determine actual space needed
+  context.font = "bold 25px Arial";
+  const metrics = context.measureText(text);
+  const textWidth = metrics.width;
+  
+  // Calculate padding and box dimensions
+  const padding = 15;
+  const boxWidth = Math.min(textWidth + padding * 2, canvas.width - 10);
+  const boxHeight = 50; // Fixed height for the box
+  
+  // Position the box in the center of the canvas
+  const boxX = (canvas.width - boxWidth) / 2;
+  const boxY = (canvas.height - boxHeight) / 2;
+  
+  // Create gradient background based on node state
+  const gradient = context.createLinearGradient(
+    boxX, boxY, 
+    boxX + boxWidth, boxY + boxHeight
+  );
     if (isFocused) {
       gradient.addColorStop(0, "#a8ff78");
       gradient.addColorStop(1, "#78ffd6");
@@ -291,51 +306,46 @@ const GraphVisualization = ({ data, getdata }) => {
       gradient.addColorStop(1, "#e0e0e0");
     }
 
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Text styling
-    context.fillStyle = "black";
-    context.font = "bold 25px Arial";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.shadowColor = "rgba(0, 0, 0, 0.3)";
-    context.shadowBlur = 4;
-    context.shadowOffsetX = 2;
-    context.shadowOffsetY = 2;
-    context.fillText(text, canvas.width / 2, canvas.height / 2);
-
-    // Rounded border with more pronounced corners
-    const borderRadius = 20; // Increase the radius to make it more rounded
-    context.lineWidth = isFocused ? 3 : isHighlighted ? 1.5 : 0.5;
-    context.strokeStyle = isFocused ? "black" : isHighlighted ? "red" : "gray";
-    context.lineJoin = "round";
-
-    // Draw the rounded rectangle
-    context.beginPath();
-    context.moveTo(5 + borderRadius, 5);
-    context.arcTo(
-      canvas.width - 5,
-      5,
-      canvas.width - 5,
-      canvas.height - 5,
-      borderRadius
-    ); // top-right corner
-    context.arcTo(
-      canvas.width - 5,
-      canvas.height - 5,
-      5,
-      canvas.height - 5,
-      borderRadius
-    ); // bottom-right corner
-    context.arcTo(5, canvas.height - 5, 5, 5, borderRadius); // bottom-left corner
-    context.arcTo(5, 5, canvas.width - 5, 5, borderRadius); // top-left corner
-    context.closePath();
-
-    context.stroke();
-
-    return canvas;
-  };
+    const borderRadius = 10; // Add rounded corners
+  
+  context.fillStyle = gradient;
+  context.beginPath();
+  context.moveTo(boxX + borderRadius, boxY);
+  context.lineTo(boxX + boxWidth - borderRadius, boxY);
+  context.arcTo(boxX + boxWidth, boxY, boxX + boxWidth, boxY + borderRadius, borderRadius);
+  context.lineTo(boxX + boxWidth, boxY + boxHeight - borderRadius);
+  context.arcTo(boxX + boxWidth, boxY + boxHeight, boxX + boxWidth - borderRadius, boxY + boxHeight, borderRadius);
+  context.lineTo(boxX + borderRadius, boxY + boxHeight);
+  context.arcTo(boxX, boxY + boxHeight, boxX, boxY + boxHeight - borderRadius, borderRadius);
+  context.lineTo(boxX, boxY + borderRadius);
+  context.arcTo(boxX, boxY, boxX + borderRadius, boxY, borderRadius);
+  context.closePath();
+  context.fill();
+  
+  // Draw border with proper styling
+  context.lineWidth = isFocused ? 3 : isHighlighted ? 2 : 1;
+  context.strokeStyle = isFocused ? "#005500" : isHighlighted ? "#0066cc" : "#aaaaaa";
+  context.stroke();
+  
+  // Adjust font size if text is too wide
+  let fontSize = 25;
+  if (textWidth > boxWidth - padding * 2) {
+    fontSize = Math.floor(fontSize * ((boxWidth - padding * 2) / textWidth));
+    context.font = `bold ${fontSize}px Arial`;
+  }
+  
+  // Draw text with shadow
+  context.fillStyle = isFocused ? "#003300" : isHighlighted ? "#000066" : "#333333";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.shadowColor = "rgba(0, 0, 0, 0.3)";
+  context.shadowBlur = 4;
+  context.shadowOffsetX = 2;
+  context.shadowOffsetY = 2;
+  context.fillText(text, canvas.width / 2, canvas.height / 2);
+  
+  return canvas;
+};
 
   // Function to determine node color
   const getNodeColor = (node) => {
@@ -360,7 +370,7 @@ const GraphVisualization = ({ data, getdata }) => {
     }
 
     // Highlighted links
-    return "red";
+    return "blue";
   };
 
   // Function to close the node details dialog

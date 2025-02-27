@@ -132,18 +132,19 @@ const NodeDetailsDialog = ({
     <div
       style={{
         position: "fixed",
-        top: "50%",
-        left: "12.5%",
-        transform: "translate(-50%, -50%)",
-        backgroundColor: "white",
-        padding: "25px",
-        borderRadius: "8px",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-        zIndex: 1000,
-        maxWidth: "400px",
-        width: "90%",
-        maxHeight: "100vh",
-        overflow: "auto",
+    top: "50%",
+    left: "0",
+    transform: "translateY(-50%)",
+    backgroundColor: "white",
+    padding: "25px",
+    borderRadius: "0 8px 8px 0",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+    zIndex: 1000,
+    maxWidth: "400px",
+    width: "30%",
+    height:"70%",
+    maxHeight: "100vh",
+    overflow: "auto",
       }}
     >
       <div
