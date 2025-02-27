@@ -10,6 +10,7 @@ const App = () => {
     try {
       const response = await axios.get("http://localhost:5261/api/Graph");
       setDataReceived(response.data.rootNode);
+      console.log(response.data.rootNode);
     } catch (error) {
       console.error(error);
     }
