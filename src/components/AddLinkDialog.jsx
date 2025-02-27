@@ -25,7 +25,7 @@ const AddLinkDialog = ({ getdata, nodedetails, onClose, onSave }) => {
                 newLink
             );
 
-            toast.success("Link saved successfully!");
+            toast.success("Link added successfully!");
             console.log(response.data);
 
             // Clear inputs

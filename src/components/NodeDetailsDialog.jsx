@@ -70,7 +70,6 @@ const NodeDetailsDialog = ({
     // After creating a link, refresh the current dialog
     await refreshNodeDetails();
     setIsNewLinkDialogOpen(false);
-    toast.success("Link added successfully.");
   };
 
   const handleDelete = async () => {
