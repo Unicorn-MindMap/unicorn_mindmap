@@ -15,6 +15,8 @@ const NodeDetailsDialog = ({
   graphData,
   handleNodeClick,
   getData,
+  isFixed,
+  onReleaseNode
 }) => {
   const [isNewNodeDialogOpen, setIsNewNodeDialogOpen] = useState(false);
   const [isUpdateNodeDialogOpen, setIsUpdateNodeDialogOpen] = useState(false);
