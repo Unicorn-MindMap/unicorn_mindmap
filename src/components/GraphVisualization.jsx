@@ -29,6 +29,8 @@ const GraphVisualization = ({ data, getdata }) => {
         id: node.id,
         label: node.label,
         code: node.code,
+        category: node.category || "Uncategorized",
+        color: node.color || "",
         description: node.description || "No description available",
         childrenCount: node.children ? node.children.length : 0,
         linksCount: node.links ? node.links.length : 0,
@@ -61,6 +63,11 @@ const GraphVisualization = ({ data, getdata }) => {
     setGraphData({ nodes, links });
     // Initially show all nodes
     setDisplayData({ nodes, links });
+    
+    // Clear focused node when data changes (e.g., after node deletion)
+    setFocusedNode(null);
+    setHighlightNodes(new Set());
+    setHighlightLinks(new Set());
   }, [data]);
 
   // Generate suggestions based on user input
@@ -141,8 +148,17 @@ const GraphVisualization = ({ data, getdata }) => {
   // Update display data based on focused node and highlight depth
   useEffect(() => {
     if (focusedNode) {
-      // Get focused node
+      // Check if the focused node still exists in the graph data
       const focusedNodeObj = graphData.nodes.find(n => n.id === focusedNode.id);
+      
+      if (!focusedNodeObj) {
+        // If the node doesn't exist anymore, reset the focus
+        setFocusedNode(null);
+        setDisplayData(graphData);
+        setHighlightNodes(new Set());
+        setHighlightLinks(new Set());
+        return;
+      }
       
       // Get connected nodes and links up to specified depth
       const connected = getConnectedNodesAndLinks(focusedNode.id);
@@ -155,8 +171,6 @@ const GraphVisualization = ({ data, getdata }) => {
       const linksToShow = Array.from(connected.links);
       
       // Create the filtered display data
-      const filteredNodes = Array.from(nodesToShow);
-      
       setDisplayData({
         nodes: [focusedNodeObj, ...Array.from(connected.nodes)],
         links: linksToShow
@@ -175,6 +189,9 @@ const GraphVisualization = ({ data, getdata }) => {
 
   const handleNodeClick = useCallback(
     (node) => {
+      // Check if the node is valid before proceeding
+      if (!node) return;
+      
       // If the node is already focused, show the details dialog
       if (focusedNode && node.id === focusedNode.id) {
         setNodeDetails(node);
@@ -200,9 +217,11 @@ const GraphVisualization = ({ data, getdata }) => {
   // Handle node drag end to fix node position
   const handleNodeDragEnd = useCallback((node) => {
     // Fix node position after drag
-    node.fx = node.x;
-    node.fy = node.y;
-    node.fz = node.z;
+    if (node) {
+      node.fx = node.x;
+      node.fy = node.y;
+      node.fz = node.z;
+    }
   }, []);
 
   // Handle selecting a suggestion
@@ -250,6 +269,8 @@ const GraphVisualization = ({ data, getdata }) => {
   //node
   const nodeThreeObject = useCallback(
     (node) => {
+      if (!node) return null;
+      
       const isHighlighted = highlightNodes.has(node);
       const isFocused = focusedNode && node.id === focusedNode.id;
 
@@ -277,24 +298,24 @@ const GraphVisualization = ({ data, getdata }) => {
 
 
     // Measure text to determine actual space needed
-  context.font = "bold 25px Arial";
-  const metrics = context.measureText(text);
-  const textWidth = metrics.width;
-  
-  // Calculate padding and box dimensions
-  const padding = 15;
-  const boxWidth = Math.min(textWidth + padding * 2, canvas.width - 10);
-  const boxHeight = 50; // Fixed height for the box
-  
-  // Position the box in the center of the canvas
-  const boxX = (canvas.width - boxWidth) / 2;
-  const boxY = (canvas.height - boxHeight) / 2;
-  
-  // Create gradient background based on node state
-  const gradient = context.createLinearGradient(
-    boxX, boxY, 
-    boxX + boxWidth, boxY + boxHeight
-  );
+    context.font = "bold 25px Arial";
+    const metrics = context.measureText(text);
+    const textWidth = metrics.width;
+    
+    // Calculate padding and box dimensions
+    const padding = 15;
+    const boxWidth = Math.min(textWidth + padding * 2, canvas.width - 10);
+    const boxHeight = 50; // Fixed height for the box
+    
+    // Position the box in the center of the canvas
+    const boxX = (canvas.width - boxWidth) / 2;
+    const boxY = (canvas.height - boxHeight) / 2;
+    
+    // Create gradient background based on node state
+    const gradient = context.createLinearGradient(
+      boxX, boxY, 
+      boxX + boxWidth, boxY + boxHeight
+    );
     if (isFocused) {
       gradient.addColorStop(0, "#a8ff78");
       gradient.addColorStop(1, "#78ffd6");
@@ -308,47 +329,49 @@ const GraphVisualization = ({ data, getdata }) => {
 
     const borderRadius = 10; // Add rounded corners
   
-  context.fillStyle = gradient;
-  context.beginPath();
-  context.moveTo(boxX + borderRadius, boxY);
-  context.lineTo(boxX + boxWidth - borderRadius, boxY);
-  context.arcTo(boxX + boxWidth, boxY, boxX + boxWidth, boxY + borderRadius, borderRadius);
-  context.lineTo(boxX + boxWidth, boxY + boxHeight - borderRadius);
-  context.arcTo(boxX + boxWidth, boxY + boxHeight, boxX + boxWidth - borderRadius, boxY + boxHeight, borderRadius);
-  context.lineTo(boxX + borderRadius, boxY + boxHeight);
-  context.arcTo(boxX, boxY + boxHeight, boxX, boxY + boxHeight - borderRadius, borderRadius);
-  context.lineTo(boxX, boxY + borderRadius);
-  context.arcTo(boxX, boxY, boxX + borderRadius, boxY, borderRadius);
-  context.closePath();
-  context.fill();
-  
-  // Draw border with proper styling
-  context.lineWidth = isFocused ? 3 : isHighlighted ? 2 : 1;
-  context.strokeStyle = isFocused ? "#005500" : isHighlighted ? "#0066cc" : "#aaaaaa";
-  context.stroke();
-  
-  // Adjust font size if text is too wide
-  let fontSize = 25;
-  if (textWidth > boxWidth - padding * 2) {
-    fontSize = Math.floor(fontSize * ((boxWidth - padding * 2) / textWidth));
-    context.font = `bold ${fontSize}px Arial`;
-  }
-  
-  // Draw text with shadow
-  context.fillStyle = isFocused ? "#003300" : isHighlighted ? "#000066" : "#333333";
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.shadowColor = "rgba(0, 0, 0, 0.3)";
-  context.shadowBlur = 4;
-  context.shadowOffsetX = 2;
-  context.shadowOffsetY = 2;
-  context.fillText(text, canvas.width / 2, canvas.height / 2);
-  
-  return canvas;
-};
+    context.fillStyle = gradient;
+    context.beginPath();
+    context.moveTo(boxX + borderRadius, boxY);
+    context.lineTo(boxX + boxWidth - borderRadius, boxY);
+    context.arcTo(boxX + boxWidth, boxY, boxX + boxWidth, boxY + borderRadius, borderRadius);
+    context.lineTo(boxX + boxWidth, boxY + boxHeight - borderRadius);
+    context.arcTo(boxX + boxWidth, boxY + boxHeight, boxX + boxWidth - borderRadius, boxY + boxHeight, borderRadius);
+    context.lineTo(boxX + borderRadius, boxY + boxHeight);
+    context.arcTo(boxX, boxY + boxHeight, boxX, boxY + boxHeight - borderRadius, borderRadius);
+    context.lineTo(boxX, boxY + borderRadius);
+    context.arcTo(boxX, boxY, boxX + borderRadius, boxY, borderRadius);
+    context.closePath();
+    context.fill();
+    
+    // Draw border with proper styling
+    context.lineWidth = isFocused ? 3 : isHighlighted ? 2 : 1;
+    context.strokeStyle = isFocused ? "#005500" : isHighlighted ? "#0066cc" : "#aaaaaa";
+    context.stroke();
+    
+    // Adjust font size if text is too wide
+    let fontSize = 25;
+    if (textWidth > boxWidth - padding * 2) {
+      fontSize = Math.floor(fontSize * ((boxWidth - padding * 2) / textWidth));
+      context.font = `bold ${fontSize}px Arial`;
+    }
+    
+    // Draw text with shadow
+    context.fillStyle = isFocused ? "#003300" : isHighlighted ? "#000066" : "#333333";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.shadowColor = "rgba(0, 0, 0, 0.3)";
+    context.shadowBlur = 4;
+    context.shadowOffsetX = 2;
+    context.shadowOffsetY = 2;
+    context.fillText(text, canvas.width / 2, canvas.height / 2);
+    
+    return canvas;
+  };
 
   // Function to determine node color
   const getNodeColor = (node) => {
+    if (!node) return 'gray';
+    
     // Focused node is black
     if (focusedNode && node.id === focusedNode.id) {
       return "black";
@@ -365,6 +388,8 @@ const GraphVisualization = ({ data, getdata }) => {
 
   // Function to determine link color based on highlight
   const getLinkColor = (link) => {
+    if (!link) return 'gray';
+    
     if (!highlightLinks.has(link)) {
       return link.type === "parent-child" ? "blue" : "black";
     }

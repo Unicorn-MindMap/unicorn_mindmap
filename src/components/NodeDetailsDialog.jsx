@@ -31,26 +31,35 @@ const NodeDetailsDialog = ({
     setCurrentNodeDetails(nodeDetails);
   }, [nodeDetails]);
 
-  // Re-render component with fresh data after operations
-  const refreshNodeDetails = async () => {
-    try {
-      // Assuming getData fetches the entire graph
-      await getData();
-      
-      // Find the updated node in the refreshed data
-      // This requires you to expose the updated graph data somehow
-      // One approach is to modify getData to return the updated data
+  // Update currentNodeDetails when graphData changes
+  useEffect(() => {
+    if (graphData && currentNodeDetails) {
+      // Find the updated node in the refreshed graph data
       const updatedNode = graphData.nodes.find(node => node.id === currentNodeDetails.id);
       
       if (updatedNode) {
+        // Get all links related to this node
+        const nodeLinks = graphData.links.filter(
+          link => link.source === updatedNode.id || link.target === updatedNode.id
+        );
+        
+        // Update the current node details with the latest data
         setCurrentNodeDetails({
           ...updatedNode,
           originalData: {
             ...updatedNode.originalData,
-            links: graphData.links.filter(link => link.source === updatedNode.id || link.target === updatedNode.id)
+            links: nodeLinks
           }
         });
       }
+    }
+  }, [graphData, currentNodeDetails?.id]);
+
+  // Method to explicitly refresh node details from the API
+  const refreshNodeDetails = async () => {
+    try {
+      await getData();
+      // The useEffect hook above will handle updating the state
     } catch (error) {
       console.error("Failed to refresh node details:", error);
     }
@@ -63,24 +72,18 @@ const NodeDetailsDialog = ({
   const handleNewNodeSave = async (newNode) => {
     // Handle new node creation logic here
     await getData();
-    // After creating a node, refresh the current dialog
-    await refreshNodeDetails();
     setIsNewNodeDialogOpen(false);
   };
+  
   const handleUpdateNodeSave = async (updatedNode) => {
     // Handle updated node logic here
     await getData();
-    // After updating a node, refresh the current dialog
-    await refreshNodeDetails();
     setIsUpdateNodeDialogOpen(false);
   };
-
 
   const handleNewLinkSave = async (newLink) => {
     // Handle new link creation logic here
     await getData();
-    // After creating a link, refresh the current dialog
-    await refreshNodeDetails();
     setIsNewLinkDialogOpen(false);
   };
 
@@ -92,9 +95,11 @@ const NodeDetailsDialog = ({
     onClose();
     setLoading(true);
     setError("");
-
+  
     try {
-      await axios.delete(`https://localhost:7029/api/Nodes/${currentNodeDetails.id}`);
+
+      await axios.delete(`https://localhost:5261/api/Nodes/${currentNodeDetails.id}`);
+
       await getData();
       toast.success("Node deleted successfully.");
     } catch (error) {
@@ -117,8 +122,6 @@ const NodeDetailsDialog = ({
     try {
       await axios.delete(`https://localhost:5261/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${targetId}`);
       await getData();
-      // After deleting a link, refresh the current dialog
-      await refreshNodeDetails();
       toast.success("Link deleted successfully.");
     } catch (error) {
       toast.error("Failed to delete the link.");
@@ -128,23 +131,28 @@ const NodeDetailsDialog = ({
     }
   };
 
+  // Check if there are any links to display
+  const hasLinks = currentNodeDetails.originalData && 
+                  currentNodeDetails.originalData.links && 
+                  currentNodeDetails.originalData.links.length > 0;
+
   return (
     <div
       style={{
         position: "fixed",
-    top: "50%",
-    left: "0",
-    transform: "translateY(-50%)",
-    backgroundColor: "white",
-    padding: "25px",
-    borderRadius: "0 8px 8px 0",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-    zIndex: 1000,
-    maxWidth: "400px",
-    width: "30%",
-    height:"70%",
-    maxHeight: "100vh",
-    overflow: "auto",
+        top: "50%",
+        left: "0",
+        transform: "translateY(-50%)",
+        backgroundColor: "white",
+        padding: "25px",
+        borderRadius: "0 8px 8px 0",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+        zIndex: 1000,
+        maxWidth: "400px",
+        width: "30%",
+        height:"70%",
+        maxHeight: "100vh",
+        overflow: "auto",
       }}
     >
       <div
@@ -152,10 +160,9 @@ const NodeDetailsDialog = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "20px",
         }}
       >
-        <h3>{currentNodeDetails.label}</h3>
+        <h3>{currentNodeDetails.label} <br /> <span style={{fontSize:"12px"}}>{currentNodeDetails.category}</span></h3>
         <button
           onClick={() => setIsNewNodeDialogOpen(true)}
           style={{
@@ -230,88 +237,6 @@ const NodeDetailsDialog = ({
         </p>
       </div>
 
-      <div style={{ marginBottom: "20px" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <tbody>
-            {currentNodeDetails.code && (
-              <tr>
-                <td
-                  style={{
-                    padding: "10px",
-                    borderBottom: "1px solid #eee",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Code:
-                </td>
-                <td style={{ padding: "10px", borderBottom: "1px solid #eee" }}>
-                  {currentNodeDetails.code}
-                </td>
-              </tr>
-            )}
-            <tr>
-              <td
-                style={{
-                  padding: "10px",
-                  borderBottom: "1px solid #eee",
-                  fontWeight: "bold",
-                }}
-              >
-                Children:
-              </td>
-              <td style={{ padding: "10px", borderBottom: "1px solid #eee" }}>
-                {currentNodeDetails.childrenCount || 0}
-              </td>
-            </tr>
-            <tr>
-              <td
-                style={{
-                  padding: "10px",
-                  borderBottom: "1px solid #eee",
-                  fontWeight: "bold",
-                }}
-              >
-                Links:
-              </td>
-              <td style={{ padding: "10px", borderBottom: "1px solid #eee" }}>
-                {currentNodeDetails.linksCount || 0}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div
-        style={{
-          marginBottom: "20px",
-          padding: "15px",
-          backgroundColor: "#e3f2fd",
-          borderRadius: "6px",
-          border: "1px solid #bbdefb",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <label htmlFor="dialog-depth-control">Highlight Depth:</label>
-          <input
-            id="dialog-depth-control"
-            type="range"
-            min="0"
-            max="5"
-            value={highlightDepth}
-            onChange={(e) => setHighlightDepth(parseInt(e.target.value))}
-            style={{ flex: 1 }}
-          />
-          <span
-            style={{
-              fontWeight: "bold",
-              minWidth: "25px",
-              textAlign: "center",
-            }}
-          >
-            {highlightDepth}
-          </span>
-        </div>
-      </div>
       {/* Related nodes section */}
       {(() => {
         const relatedNodes = getRelatedNodes(currentNodeDetails.id);
@@ -360,9 +285,9 @@ const NodeDetailsDialog = ({
                     <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
                       {relatedNodes.parent.label}
                     </div>
-                    {relatedNodes.parent.code && (
+                    {relatedNodes.parent.category && (
                       <div style={{ fontSize: "14px", color: "#64748b" }}>
-                        {relatedNodes.parent.code}
+                        {relatedNodes.parent.category}
                       </div>
                     )}
                   </div>
@@ -514,139 +439,135 @@ const NodeDetailsDialog = ({
         );
       })()}
 
-      {/* Original node data (links) */}
-      {currentNodeDetails.originalData &&
-        currentNodeDetails.originalData.links &&
-        currentNodeDetails.originalData.links.length > 0 && (
-          <div style={{ marginTop: "20px" }}>
-            <h3
-              style={{
-                fontSize: "18px",
-                marginBottom: "12px",
-                color: "#34495e",
-              }}
-            >
-              Source Links Content
-            </h3>
-            <div
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: "6px",
-                overflow: "hidden",
-                marginBottom: "10px",
-              }}
-            >
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ backgroundColor: "#f1f5f9" }}>
-                    <th
+      {/* Original node data (links) - only show if there are links */}
+      {hasLinks && (
+        <div style={{ marginTop: "20px" }}>
+          <h3
+            style={{
+              fontSize: "18px",
+              marginBottom: "12px",
+              color: "#34495e",
+            }}
+          >
+            Source Links Content
+          </h3>
+          <div
+            style={{
+              border: "1px solid #e2e8f0",
+              borderRadius: "6px",
+              overflow: "hidden",
+              marginBottom: "10px",
+            }}
+          >
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#f1f5f9" }}>
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "12px",
+                      borderBottom: "2px solid #cbd5e0",
+                    }}
+                  >
+                    Target
+                  </th>
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "12px",
+                      borderBottom: "2px solid #cbd5e0",
+                    }}
+                  >
+                    Content
+                  </th>
+                  <th
+                    style={{
+                      textAlign: "center",
+                      borderBottom: "2px solid #cbd5e0",
+                      width: "60px",
+                    }}
+                  >
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentNodeDetails.originalData.links.map((link, index) => {
+                  const targetNode = graphData.nodes.find(
+                    (n) => n.id === link.id
+                  );
+                  return (
+                    <tr
+                      key={index}
                       style={{
-                        textAlign: "left",
-                        padding: "12px",
-                        borderBottom: "2px solid #cbd5e0",
+                        backgroundColor:
+                          index % 2 === 0 ? "#ffffff" : "#f8fafc",
                       }}
                     >
-                      Target
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px",
-                        borderBottom: "2px solid #cbd5e0",
-                      }}
-                    >
-                      Content
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "center",
-                        
-                        borderBottom: "2px solid #cbd5e0",
-                        width: "60px",
-                      }}
-                    >
-                      
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentNodeDetails.originalData.links.map((link, index) => {
-                    const targetNode = graphData.nodes.find(
-                      (n) => n.id === link.id
-                    );
-                    return (
-                      <tr
-                        key={index}
+                      <td
                         style={{
-                          backgroundColor:
-                            index % 2 === 0 ? "#ffffff" : "#f8fafc",
+                          padding: "12px",
+                          borderBottom: "1px solid #e2e8f0",
                         }}
                       >
-                        <td
-                          style={{
-                            padding: "12px",
-                            borderBottom: "1px solid #e2e8f0",
+                        {targetNode ? targetNode.label : "Unknown"}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom: "1px solid #e2e8f0",
+                        }}
+                      >
+                        {link.content}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom: "1px solid #e2e8f0",
+                          textAlign: "center",
+                        }}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteLink(link.id);
                           }}
-                        >
-                          {targetNode ? targetNode.label : "Unknown"}
-                        </td>
-                        <td
+                          disabled={deletingLinkIds[link.id]}
                           style={{
-                            padding: "12px",
-                            borderBottom: "1px solid #e2e8f0",
+                            backgroundColor: "transparent",
+                            border: "none",
+                            color: "#ef4444",
+                            cursor: "pointer",
+                            fontSize: "16px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "4px",
+                            borderRadius: "4px",
+                            transition: "background-color 0.2s",
                           }}
+                          title="Delete link"
+                          onMouseOver={(e) => 
+                            (e.currentTarget.style.backgroundColor = "#fee2e2")
+                          }
+                          onMouseOut={(e) => 
+                            (e.currentTarget.style.backgroundColor = "transparent")
+                          }
                         >
-                          {link.content}
-                        </td>
-                        <td
-                          style={{
-                            padding: "12px",
-                            borderBottom: "1px solid #e2e8f0",
-                            textAlign: "center",
-                          }}
-                        >
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteLink(link.id);
-                            }}
-                            disabled={deletingLinkIds[link.id]}
-                            style={{
-                              backgroundColor: "transparent",
-                              border: "none",
-                              color: "#ef4444",
-                              cursor: "pointer",
-                              fontSize: "16px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              padding: "4px",
-                              borderRadius: "4px",
-                              transition: "background-color 0.2s",
-                            }}
-                            title="Delete link"
-                            onMouseOver={(e) => 
-                              (e.currentTarget.style.backgroundColor = "#fee2e2")
-                            }
-                            onMouseOut={(e) => 
-                              (e.currentTarget.style.backgroundColor = "transparent")
-                            }
-                          >
-                            {deletingLinkIds[link.id] ? (
-                              <span>...</span>
-                            ) : (
-                              <FaTrash />
-                            )}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          {deletingLinkIds[link.id] ? (
+                            <span>...</span>
+                          ) : (
+                            <FaTrash />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
+      )}
       <button
         onClick={handleDelete}
         disabled={loading}
