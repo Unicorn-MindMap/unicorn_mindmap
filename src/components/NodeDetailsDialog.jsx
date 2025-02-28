@@ -94,7 +94,7 @@ const NodeDetailsDialog = ({
     setError("");
 
     try {
-      await axios.delete(`https://localhost:7029/api/Graph/${currentNodeDetails.id}`);
+      await axios.delete(`https://localhost:7029/api/Nodes/${currentNodeDetails.id}`);
       await getData();
       toast.success("Node deleted successfully.");
     } catch (error) {
@@ -115,7 +115,7 @@ const NodeDetailsDialog = ({
     setError("");
 
     try {
-      await axios.delete(`https://localhost:7029/api/Graph/links?sourceId=${currentNodeDetails.id}&targetId=${targetId}`);
+      await axios.delete(`https://localhost:5261/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${targetId}`);
       await getData();
       // After deleting a link, refresh the current dialog
       await refreshNodeDetails();

@@ -33,7 +33,7 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
       };
 
       const response = await axios.put(
-        `https://localhost:7029/api/Graph/${nodeDetails.id}`,
+        `https://localhost:7029/api/Nodes/${nodeDetails.id}`,
         updatedNode
       );
 
