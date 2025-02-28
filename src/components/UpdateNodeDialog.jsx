@@ -6,16 +6,17 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
   const [label, setLabel] = useState("");
   const [description, setDescription] = useState("");
   const [code, setCode] = useState("");
+  const [category, setCategory] = useState("");
 
   // Initialize state when component mounts or nodeDetails changes
   useEffect(() => {
     if (nodeDetails) {
+      setCategory(nodeDetails.category || "");
       setLabel(nodeDetails.label || "");
       setCode(nodeDetails.code || "");
       setDescription(nodeDetails.description || "");
     }
   }, [nodeDetails]);
-
   const handleSave = async () => {
     if (!nodeDetails?.id) {
       toast.error("Invalid node details");
@@ -27,13 +28,12 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
         id: nodeDetails.id, // Keep the existing node ID
         label,
         code,
+        category,
         description,
-        children: nodeDetails.children || [], // Preserve existing children
-        links: nodeDetails.links || [], // Preserve existing links
       };
 
       const response = await axios.put(
-        `https://localhost:7029/api/Graph/${nodeDetails.id}`,
+        `https://localhost:5261/api/Nodes/${nodeDetails.id}`,
         updatedNode
       );
 
@@ -58,7 +58,7 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
         left: "50%",
         transform: "translate(-50%, -50%)",
         backgroundColor: "white",
-        padding: "20px",
+        padding: "10px",
         borderRadius: "8px",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
         border: "1px solid rgb(77, 78, 79)",
@@ -74,7 +74,7 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "20px",
+          marginBottom: "10px",
         }}
       >
         <h3>Update Node</h3>
@@ -91,7 +91,7 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
           ×
         </button>
       </div>
-      <div style={{ marginBottom: "20px", maxWidth: "96%" }}>
+      <div style={{ marginBottom: "10px", maxWidth: "96%" }}>
         <label>
           Label:
           <input
@@ -102,7 +102,7 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
           />
         </label>
       </div>
-      <div style={{ marginBottom: "20px", maxWidth: "96%" }}>
+      <div style={{ marginBottom: "10px", maxWidth: "96%" }}>
         <label>
           Code:
           <input
@@ -113,7 +113,18 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
           />
         </label>
       </div>
-      <div style={{ marginBottom: "20px", maxWidth: "96%" }}>
+      <div style={{ marginBottom: "10px", maxWidth: "96%" }}>
+        <label>
+          Category:
+          <input
+            type="text"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            style={{ width: "100%", padding: "8px", margin: "8px 0" }}
+          />
+        </label>
+      </div>
+      <div style={{ marginBottom: "10px", maxWidth: "96%" }}>
         <label>
           Description:
           <textarea

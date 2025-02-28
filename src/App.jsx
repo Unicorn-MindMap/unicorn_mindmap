@@ -8,7 +8,7 @@ const App = () => {
 
   const getData = async () => {
     try {
-      const response = await axios.get("http://localhost:5261/api/Graph");
+      const response = await axios.get("https://localhost:5261/api/Nodes");
       setDataReceived(response.data.rootNode);
       console.log(response.data.rootNode);
     } catch (error) {
