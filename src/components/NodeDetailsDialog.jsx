@@ -31,35 +31,26 @@ const NodeDetailsDialog = ({
     setCurrentNodeDetails(nodeDetails);
   }, [nodeDetails]);
 
-  // Update currentNodeDetails when graphData changes
-  useEffect(() => {
-    if (graphData && currentNodeDetails) {
-      // Find the updated node in the refreshed graph data
+  // Re-render component with fresh data after operations
+  const refreshNodeDetails = async () => {
+    try {
+      // Assuming getData fetches the entire graph
+      await getData();
+      
+      // Find the updated node in the refreshed data
+      // This requires you to expose the updated graph data somehow
+      // One approach is to modify getData to return the updated data
       const updatedNode = graphData.nodes.find(node => node.id === currentNodeDetails.id);
       
       if (updatedNode) {
-        // Get all links related to this node
-        const nodeLinks = graphData.links.filter(
-          link => link.source === updatedNode.id || link.target === updatedNode.id
-        );
-        
-        // Update the current node details with the latest data
         setCurrentNodeDetails({
           ...updatedNode,
           originalData: {
             ...updatedNode.originalData,
-            links: nodeLinks
+            links: graphData.links.filter(link => link.source === updatedNode.id || link.target === updatedNode.id)
           }
         });
       }
-    }
-  }, [graphData, currentNodeDetails?.id]);
-
-  // Method to explicitly refresh node details from the API
-  const refreshNodeDetails = async () => {
-    try {
-      await getData();
-      // The useEffect hook above will handle updating the state
     } catch (error) {
       console.error("Failed to refresh node details:", error);
     }
@@ -72,18 +63,24 @@ const NodeDetailsDialog = ({
   const handleNewNodeSave = async (newNode) => {
     // Handle new node creation logic here
     await getData();
+    // After creating a node, refresh the current dialog
+    await refreshNodeDetails();
     setIsNewNodeDialogOpen(false);
   };
-  
   const handleUpdateNodeSave = async (updatedNode) => {
     // Handle updated node logic here
     await getData();
+    // After updating a node, refresh the current dialog
+    await refreshNodeDetails();
     setIsUpdateNodeDialogOpen(false);
   };
+
 
   const handleNewLinkSave = async (newLink) => {
     // Handle new link creation logic here
     await getData();
+    // After creating a link, refresh the current dialog
+    await refreshNodeDetails();
     setIsNewLinkDialogOpen(false);
   };
 
@@ -120,6 +117,8 @@ const NodeDetailsDialog = ({
     try {
       await axios.delete(`https://localhost:5261/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${targetId}`);
       await getData();
+      // After deleting a link, refresh the current dialog
+      await refreshNodeDetails();
       toast.success("Link deleted successfully.");
     } catch (error) {
       toast.error("Failed to delete the link.");
@@ -133,19 +132,19 @@ const NodeDetailsDialog = ({
     <div
       style={{
         position: "fixed",
-        top: "50%",
-        left: "0",
-        transform: "translateY(-50%)",
-        backgroundColor: "white",
-        padding: "25px",
-        borderRadius: "0 8px 8px 0",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-        zIndex: 1000,
-        maxWidth: "400px",
-        width: "30%",
-        height:"70%",
-        maxHeight: "100vh",
-        overflow: "auto",
+    top: "50%",
+    left: "0",
+    transform: "translateY(-50%)",
+    backgroundColor: "white",
+    padding: "25px",
+    borderRadius: "0 8px 8px 0",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+    zIndex: 1000,
+    maxWidth: "400px",
+    width: "30%",
+    height:"70%",
+    maxHeight: "100vh",
+    overflow: "auto",
       }}
     >
       <div
@@ -230,6 +229,9 @@ const NodeDetailsDialog = ({
         </p>
       </div>
 
+      
+
+      
       {/* Related nodes section */}
       {(() => {
         const relatedNodes = getRelatedNodes(currentNodeDetails.id);
@@ -478,10 +480,12 @@ const NodeDetailsDialog = ({
                     <th
                       style={{
                         textAlign: "center",
+                        
                         borderBottom: "2px solid #cbd5e0",
                         width: "60px",
                       }}
                     >
+                      
                     </th>
                   </tr>
                 </thead>
