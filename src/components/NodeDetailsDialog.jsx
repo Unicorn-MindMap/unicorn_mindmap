@@ -129,11 +129,6 @@ const NodeDetailsDialog = ({
     }
   };
 
-  // Check if there are any links to display
-  const hasLinks = currentNodeDetails.originalData && 
-                  currentNodeDetails.originalData.links && 
-                  currentNodeDetails.originalData.links.length > 0;
-
   return (
     <div
       style={{
@@ -437,135 +432,137 @@ const NodeDetailsDialog = ({
         );
       })()}
 
-      {/* Original node data (links) - only show if there are links */}
-      {hasLinks && (
-        <div style={{ marginTop: "20px" }}>
-          <h3
-            style={{
-              fontSize: "18px",
-              marginBottom: "12px",
-              color: "#34495e",
-            }}
-          >
-            Source Links Content
-          </h3>
-          <div
-            style={{
-              border: "1px solid #e2e8f0",
-              borderRadius: "6px",
-              overflow: "hidden",
-              marginBottom: "10px",
-            }}
-          >
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ backgroundColor: "#f1f5f9" }}>
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: "12px",
-                      borderBottom: "2px solid #cbd5e0",
-                    }}
-                  >
-                    Target
-                  </th>
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: "12px",
-                      borderBottom: "2px solid #cbd5e0",
-                    }}
-                  >
-                    Content
-                  </th>
-                  <th
-                    style={{
-                      textAlign: "center",
-                      borderBottom: "2px solid #cbd5e0",
-                      width: "60px",
-                    }}
-                  >
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentNodeDetails.originalData.links.map((link, index) => {
-                  const targetNode = graphData.nodes.find(
-                    (n) => n.id === link.id
-                  );
-                  return (
-                    <tr
-                      key={index}
+      {/* Original node data (links) */}
+      {currentNodeDetails.originalData &&
+        currentNodeDetails.originalData.links &&
+        currentNodeDetails.originalData.links.length > 0 && (
+          <div style={{ marginTop: "20px" }}>
+            <h3
+              style={{
+                fontSize: "18px",
+                marginBottom: "12px",
+                color: "#34495e",
+              }}
+            >
+              Source Links Content
+            </h3>
+            <div
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: "6px",
+                overflow: "hidden",
+                marginBottom: "10px",
+              }}
+            >
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ backgroundColor: "#f1f5f9" }}>
+                    <th
                       style={{
-                        backgroundColor:
-                          index % 2 === 0 ? "#ffffff" : "#f8fafc",
+                        textAlign: "left",
+                        padding: "12px",
+                        borderBottom: "2px solid #cbd5e0",
                       }}
                     >
-                      <td
+                      Target
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "12px",
+                        borderBottom: "2px solid #cbd5e0",
+                      }}
+                    >
+                      Content
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "center",
+                        borderBottom: "2px solid #cbd5e0",
+                        width: "60px",
+                      }}
+                    >
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentNodeDetails.originalData.links.map((link, index) => {
+                    const targetNode = graphData.nodes.find(
+                      (n) => n.id === link.id
+                    );
+                    return (
+                      <tr
+                        key={index}
                         style={{
-                          padding: "12px",
-                          borderBottom: "1px solid #e2e8f0",
+                          backgroundColor:
+                            index % 2 === 0 ? "#ffffff" : "#f8fafc",
                         }}
                       >
-                        {targetNode ? targetNode.label : "Unknown"}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px",
-                          borderBottom: "1px solid #e2e8f0",
-                        }}
-                      >
-                        {link.content}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px",
-                          borderBottom: "1px solid #e2e8f0",
-                          textAlign: "center",
-                        }}
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteLink(link.id);
-                          }}
-                          disabled={deletingLinkIds[link.id]}
+                        <td
                           style={{
-                            backgroundColor: "transparent",
-                            border: "none",
-                            color: "#ef4444",
-                            cursor: "pointer",
-                            fontSize: "16px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            padding: "4px",
-                            borderRadius: "4px",
-                            transition: "background-color 0.2s",
+                            padding: "12px",
+                            borderBottom: "1px solid #e2e8f0",
                           }}
-                          title="Delete link"
-                          onMouseOver={(e) => 
-                            (e.currentTarget.style.backgroundColor = "#fee2e2")
-                          }
-                          onMouseOut={(e) => 
-                            (e.currentTarget.style.backgroundColor = "transparent")
-                          }
                         >
-                          {deletingLinkIds[link.id] ? (
-                            <span>...</span>
-                          ) : (
-                            <FaTrash />
-                          )}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                          {targetNode ? targetNode.label : "Unknown"}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            borderBottom: "1px solid #e2e8f0",
+                          }}
+                        >
+                          {link.content}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            borderBottom: "1px solid #e2e8f0",
+                            textAlign: "center",
+                          }}
+                        >
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteLink(link.id);
+                            }}
+                            disabled={deletingLinkIds[link.id]}
+                            style={{
+                              backgroundColor: "transparent",
+                              border: "none",
+                              color: "#ef4444",
+                              cursor: "pointer",
+                              fontSize: "16px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              padding: "4px",
+                              borderRadius: "4px",
+                              transition: "background-color 0.2s",
+                            }}
+                            title="Delete link"
+                            onMouseOver={(e) => 
+                              (e.currentTarget.style.backgroundColor = "#fee2e2")
+                            }
+                            onMouseOut={(e) => 
+                              (e.currentTarget.style.backgroundColor = "transparent")
+                            }
+                          >
+                            {deletingLinkIds[link.id] ? (
+                              <span>...</span>
+                            ) : (
+                              <FaTrash />
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       <button
         onClick={handleDelete}
         disabled={loading}
