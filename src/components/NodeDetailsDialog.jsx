@@ -97,9 +97,7 @@ const NodeDetailsDialog = ({
     setError("");
   
     try {
-
       await axios.delete(`https://localhost:5261/api/Nodes/${currentNodeDetails.id}`);
-
       await getData();
       toast.success("Node deleted successfully.");
     } catch (error) {
