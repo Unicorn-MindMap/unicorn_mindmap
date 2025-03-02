@@ -9,13 +9,18 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
   const [category, setCategory] = useState("");
 
   const handleSave = async () => {
+    if (!label || !code || !description || !category) {
+      toast.error("All fields are required!");
+      return;
+    }
+
     try {
       const newNode = {
         id: "",
         label,
         code,
         description,
-        category, // Added category field
+        category,
         color: "",
         attachments: [],
         children: [],
@@ -26,6 +31,7 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
         `https://localhost:5261/api/Nodes?parentId=${nodeDetails.id}`,
         newNode
       );
+
       toast.success("Node saved successfully!");
       console.log(response.data);
 
@@ -34,6 +40,7 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
       setCode("");
       setDescription("");
       setCategory("");
+
       getdata();
       onSave(newNode);
       onClose();
@@ -91,7 +98,12 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
             type="text"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            style={{ width: "100%", padding: "8px", margin: "8px 0" }}
+            style={{
+              width: "100%",
+              padding: "8px",
+              margin: "8px 0",
+              
+            }}
           />
         </label>
       </div>
@@ -102,7 +114,12 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            style={{ width: "100%", padding: "8px", margin: "8px 0" }}
+            style={{
+              width: "100%",
+              padding: "8px",
+              margin: "8px 0",
+              
+            }}
           />
         </label>
       </div>
@@ -113,7 +130,12 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
             type="text"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            style={{ width: "100%", padding: "8px", margin: "8px 0" }}
+            style={{
+              width: "100%",
+              padding: "8px",
+              margin: "8px 0",
+              
+            }}
           />
         </label>
       </div>
@@ -123,7 +145,12 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            style={{ width: "100%", padding: "8px", margin: "8px 0" }}
+            style={{
+              width: "100%",
+              padding: "8px",
+              margin: "8px 0",
+              
+            }}
           />
         </label>
       </div>

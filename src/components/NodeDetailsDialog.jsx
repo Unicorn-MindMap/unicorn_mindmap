@@ -5,6 +5,7 @@ import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
 import UpdateNodeDialog from "./UpdateNodeDialog";
+import AttachmentManager from "./AttachmentManager";
 
 const NodeDetailsDialog = ({
   nodeDetails,
@@ -25,6 +26,7 @@ const NodeDetailsDialog = ({
   const [isNewLinkDialogOpen, setIsNewLinkDialogOpen] = useState(false);
   const [deletingLinkIds, setDeletingLinkIds] = useState({});
   const [currentNodeDetails, setCurrentNodeDetails] = useState(nodeDetails);
+  const [showAttachmentManager, setShowAttachmentManager] = useState(false);
   
   // Update currentNodeDetails when nodeDetails prop changes
   useEffect(() => {
@@ -158,13 +160,7 @@ const NodeDetailsDialog = ({
         <button
           onClick={() => setIsNewNodeDialogOpen(true)}
           style={{
-            fontSize: "13px",
-            backgroundColor: "#e3f2fd",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            margin: "0 5px",
-            padding: "5px",
+            padding: "8px", backgroundColor: "#e3f2fd", borderRadius: "50%", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
           }}
           title="Add Child Node"
         >
@@ -188,13 +184,7 @@ const NodeDetailsDialog = ({
         <button
           onClick={() => setIsUpdateNodeDialogOpen(true)}
           style={{
-            fontSize: "13px",
-            backgroundColor: "#e3f2fd",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            margin: "0 5px",
-            padding: "5px",
+            padding: "8px", backgroundColor: "#e3f2fd", borderRadius: "50%", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
           }}
           title="Edit Node"
         >
@@ -229,7 +219,23 @@ const NodeDetailsDialog = ({
         </p>
       </div>
 
-      
+      <div style={{  textAlign: "center" }}>
+      <button
+        onClick={() => setShowAttachmentManager(!showAttachmentManager)}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#e3f2fd",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          marginBottom: "20px",
+        }}
+      >
+        {showAttachmentManager ? "Hide Attachments" : "Attachments"}
+      </button>
+
+      {showAttachmentManager && <AttachmentManager nodeDetails={currentNodeDetails}/>}
+    </div>
 
       
       {/* Related nodes section */}
@@ -280,11 +286,11 @@ const NodeDetailsDialog = ({
                     <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
                       {relatedNodes.parent.label}
                     </div>
-                    {relatedNodes.parent.category && (
+                    {/* {relatedNodes.parent.category && (
                       <div style={{ fontSize: "14px", color: "#64748b" }}>
                         {relatedNodes.parent.category}
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div style={{ color: "#3b82f6", fontSize: "14px" }}>
                     View &rarr;

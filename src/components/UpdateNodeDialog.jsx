@@ -18,6 +18,10 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
     }
   }, [nodeDetails]);
   const handleSave = async () => {
+    if (!label || !code || !description || !category) {
+      toast.error("All fields are required!");
+      return;
+    }
     if (!nodeDetails?.id) {
       toast.error("Invalid node details");
       return;
