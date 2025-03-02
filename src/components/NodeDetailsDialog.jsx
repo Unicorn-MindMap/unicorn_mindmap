@@ -6,6 +6,7 @@ import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
 import UpdateNodeDialog from "./UpdateNodeDialog";
 
+
 const NodeDetailsDialog = ({
   nodeDetails,
   onClose,
@@ -81,6 +82,9 @@ const NodeDetailsDialog = ({
     setIsUpdateNodeDialogOpen(false);
   };
 
+  const handleAttachmentAdded = async () => {
+    await refreshNodeDetails();
+  };
   const handleNewLinkSave = async (newLink) => {
     // Handle new link creation logic here
     await getData();
@@ -229,6 +233,12 @@ const NodeDetailsDialog = ({
           {currentNodeDetails.description}
         </p>
       </div>
+
+ 
+
+
+
+
 
       {/* Related nodes section */}
       {(() => {
@@ -594,6 +604,15 @@ const NodeDetailsDialog = ({
           onSave={handleUpdateNodeSave}
         />
       )}
+
+<Attachments 
+  nodeDetails={currentNodeDetails} 
+  onAttachmentAdded={handleAttachmentAdded} 
+/>
+
+
+
+      
       {isNewLinkDialogOpen && (
         <AddLinkDialog
           getdata={getData}
