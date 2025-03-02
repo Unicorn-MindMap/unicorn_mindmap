@@ -604,15 +604,6 @@ const NodeDetailsDialog = ({
           onSave={handleUpdateNodeSave}
         />
       )}
-
-<Attachments 
-  nodeDetails={currentNodeDetails} 
-  onAttachmentAdded={handleAttachmentAdded} 
-/>
-
-
-
-      
       {isNewLinkDialogOpen && (
         <AddLinkDialog
           getdata={getData}
