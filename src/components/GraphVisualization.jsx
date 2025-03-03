@@ -3,7 +3,7 @@ import ForceGraph3D from "react-force-graph-3d";
 import * as THREE from "three";
 import NodeDetailsDialog from "./NodeDetailsDialog";
 import DownloadGraphButton from "./Download";
-
+import ChatbotDialog from "./ChatbotDialog";
 
 const GraphVisualization = ({ data, getdata }) => {
   const fgRef = useRef();
@@ -664,7 +664,9 @@ const GraphVisualization = ({ data, getdata }) => {
         <div>
           <DownloadGraphButton />
         </div>
-        
+        <div>
+          <ChatbotDialog />
+        </div>
       </div>
 
       <ForceGraph3D
@@ -678,7 +680,7 @@ const GraphVisualization = ({ data, getdata }) => {
         linkDirectionalArrowColor={(link) =>
           highlightLinks.has(link) ? "red" : "black"
         }
-        backgroundColor="gray"
+        backgroundColor="#e6f2fc"
         onNodeClick={handleNodeClick}
         nodeThreeObject={nodeThreeObject}
         nodeColor={getNodeColor}
