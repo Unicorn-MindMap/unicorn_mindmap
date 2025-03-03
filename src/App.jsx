@@ -3,6 +3,7 @@ import axios from "axios";
 import GraphVisualization from "./components/GraphVisualization";
 import { Toaster } from "react-hot-toast";
 
+
 const App = () => {
   const [dataReceived, setDataReceived] = useState([]);
 
@@ -24,7 +25,9 @@ const App = () => {
     <div>
       <Toaster position="top-center" />
       <GraphVisualization data={dataReceived} getdata={getData}/>
+      
     </div>
+    
   );
 };
 

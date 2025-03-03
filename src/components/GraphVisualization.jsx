@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ForceGraph3D from "react-force-graph-3d";
 import * as THREE from "three";
 import NodeDetailsDialog from "./NodeDetailsDialog";
+import DownloadGraphButton from "./Download";
+
 
 const GraphVisualization = ({ data, getdata }) => {
   const fgRef = useRef();
@@ -63,7 +65,7 @@ const GraphVisualization = ({ data, getdata }) => {
     setGraphData({ nodes, links });
     // Initially show all nodes
     setDisplayData({ nodes, links });
-    
+
     // Clear focused node when data changes (e.g., after node deletion)
     setFocusedNode(null);
     setHighlightNodes(new Set());
@@ -149,8 +151,10 @@ const GraphVisualization = ({ data, getdata }) => {
   useEffect(() => {
     if (focusedNode) {
       // Check if the focused node still exists in the graph data
-      const focusedNodeObj = graphData.nodes.find(n => n.id === focusedNode.id);
-      
+      const focusedNodeObj = graphData.nodes.find(
+        (n) => n.id === focusedNode.id
+      );
+
       if (!focusedNodeObj) {
         // If the node doesn't exist anymore, reset the focus
         setFocusedNode(null);
@@ -159,23 +163,23 @@ const GraphVisualization = ({ data, getdata }) => {
         setHighlightLinks(new Set());
         return;
       }
-      
+
       // Get connected nodes and links up to specified depth
       const connected = getConnectedNodesAndLinks(focusedNode.id);
-      
+
       // Create a new set with the focused node and connected nodes
       const nodesToShow = new Set([focusedNodeObj]);
-      connected.nodes.forEach(node => nodesToShow.add(node));
-      
+      connected.nodes.forEach((node) => nodesToShow.add(node));
+
       // Filter links to only include those between visible nodes
       const linksToShow = Array.from(connected.links);
-      
+
       // Create the filtered display data
       setDisplayData({
         nodes: [focusedNodeObj, ...Array.from(connected.nodes)],
-        links: linksToShow
+        links: linksToShow,
       });
-      
+
       // Update highlight sets for styling
       setHighlightNodes(new Set(connected.nodes));
       setHighlightLinks(new Set(connected.links));
@@ -191,7 +195,7 @@ const GraphVisualization = ({ data, getdata }) => {
     (node) => {
       // Check if the node is valid before proceeding
       if (!node) return;
-      
+
       // If the node is already focused, show the details dialog
       if (focusedNode && node.id === focusedNode.id) {
         setNodeDetails(node);
@@ -270,7 +274,7 @@ const GraphVisualization = ({ data, getdata }) => {
   const nodeThreeObject = useCallback(
     (node) => {
       if (!node) return null;
-      
+
       const isHighlighted = highlightNodes.has(node);
       const isFocused = focusedNode && node.id === focusedNode.id;
 
@@ -295,26 +299,28 @@ const GraphVisualization = ({ data, getdata }) => {
     const context = canvas.getContext("2d");
     canvas.width = 256;
     canvas.height = 128;
-
-
+    
+    
     // Measure text to determine actual space needed
     context.font = "bold 25px Arial";
     const metrics = context.measureText(text);
     const textWidth = metrics.width;
-    
+
     // Calculate padding and box dimensions
     const padding = 15;
     const boxWidth = Math.min(textWidth + padding * 2, canvas.width - 10);
     const boxHeight = 50; // Fixed height for the box
-    
+
     // Position the box in the center of the canvas
     const boxX = (canvas.width - boxWidth) / 2;
     const boxY = (canvas.height - boxHeight) / 2;
-    
+
     // Create gradient background based on node state
     const gradient = context.createLinearGradient(
-      boxX, boxY, 
-      boxX + boxWidth, boxY + boxHeight
+      boxX,
+      boxY,
+      boxX + boxWidth,
+      boxY + boxHeight
     );
     if (isFocused) {
       gradient.addColorStop(0, "#a8ff78");
@@ -328,35 +334,61 @@ const GraphVisualization = ({ data, getdata }) => {
     }
 
     const borderRadius = 10; // Add rounded corners
-  
+
     context.fillStyle = gradient;
     context.beginPath();
     context.moveTo(boxX + borderRadius, boxY);
     context.lineTo(boxX + boxWidth - borderRadius, boxY);
-    context.arcTo(boxX + boxWidth, boxY, boxX + boxWidth, boxY + borderRadius, borderRadius);
+    context.arcTo(
+      boxX + boxWidth,
+      boxY,
+      boxX + boxWidth,
+      boxY + borderRadius,
+      borderRadius
+    );
     context.lineTo(boxX + boxWidth, boxY + boxHeight - borderRadius);
-    context.arcTo(boxX + boxWidth, boxY + boxHeight, boxX + boxWidth - borderRadius, boxY + boxHeight, borderRadius);
+    context.arcTo(
+      boxX + boxWidth,
+      boxY + boxHeight,
+      boxX + boxWidth - borderRadius,
+      boxY + boxHeight,
+      borderRadius
+    );
     context.lineTo(boxX + borderRadius, boxY + boxHeight);
-    context.arcTo(boxX, boxY + boxHeight, boxX, boxY + boxHeight - borderRadius, borderRadius);
+    context.arcTo(
+      boxX,
+      boxY + boxHeight,
+      boxX,
+      boxY + boxHeight - borderRadius,
+      borderRadius
+    );
     context.lineTo(boxX, boxY + borderRadius);
     context.arcTo(boxX, boxY, boxX + borderRadius, boxY, borderRadius);
     context.closePath();
     context.fill();
-    
+
     // Draw border with proper styling
     context.lineWidth = isFocused ? 3 : isHighlighted ? 2 : 1;
-    context.strokeStyle = isFocused ? "#005500" : isHighlighted ? "#0066cc" : "#aaaaaa";
+    context.strokeStyle = isFocused
+      ? "#005500"
+      : isHighlighted
+      ? "#0066cc"
+      : "#aaaaaa";
     context.stroke();
-    
+
     // Adjust font size if text is too wide
     let fontSize = 25;
     if (textWidth > boxWidth - padding * 2) {
       fontSize = Math.floor(fontSize * ((boxWidth - padding * 2) / textWidth));
       context.font = `bold ${fontSize}px Arial`;
     }
-    
+
     // Draw text with shadow
-    context.fillStyle = isFocused ? "#003300" : isHighlighted ? "#000066" : "#333333";
+    context.fillStyle = isFocused
+      ? "#003300"
+      : isHighlighted
+      ? "#000066"
+      : "#333333";
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.shadowColor = "rgba(0, 0, 0, 0.3)";
@@ -364,14 +396,14 @@ const GraphVisualization = ({ data, getdata }) => {
     context.shadowOffsetX = 2;
     context.shadowOffsetY = 2;
     context.fillText(text, canvas.width / 2, canvas.height / 2);
-    
+
     return canvas;
   };
 
   // Function to determine node color
   const getNodeColor = (node) => {
-    if (!node) return 'gray';
-    
+    if (!node) return "gray";
+
     // Focused node is black
     if (focusedNode && node.id === focusedNode.id) {
       return "black";
@@ -388,10 +420,10 @@ const GraphVisualization = ({ data, getdata }) => {
 
   // Function to determine link color based on highlight
   const getLinkColor = (link) => {
-    if (!link) return 'gray';
-    
+    if (!link) return "white";
+
     if (!highlightLinks.has(link)) {
-      return link.type === "parent-child" ? "blue" : "black";
+      return link.type === "parent-child" ? "black" : "blue";
     }
 
     // Highlighted links
@@ -526,7 +558,8 @@ const GraphVisualization = ({ data, getdata }) => {
               }
             }}
             style={{
-              padding: "8px 2px",
+              padding: "12px 2px",
+              backgroundColor: "#f0f0f0",
               width: "100%",
               borderRadius: "4px",
               border: "1px solid #ccc",
@@ -586,6 +619,7 @@ const GraphVisualization = ({ data, getdata }) => {
           onClick={handleSearch}
           style={{
             padding: "5px 10px",
+            backgroundColor: "#f0f0f0",
           }}
         >
           Search
@@ -626,6 +660,11 @@ const GraphVisualization = ({ data, getdata }) => {
             Show All Nodes
           </button>
         )}
+
+        <div>
+          <DownloadGraphButton />
+        </div>
+        
       </div>
 
       <ForceGraph3D
@@ -639,7 +678,7 @@ const GraphVisualization = ({ data, getdata }) => {
         linkDirectionalArrowColor={(link) =>
           highlightLinks.has(link) ? "red" : "black"
         }
-        backgroundColor="#e6f2fc"
+        backgroundColor="gray"
         onNodeClick={handleNodeClick}
         nodeThreeObject={nodeThreeObject}
         nodeColor={getNodeColor}

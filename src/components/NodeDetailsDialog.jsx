@@ -5,7 +5,7 @@ import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
 import UpdateNodeDialog from "./UpdateNodeDialog";
-
+import AttachmentManager from "./AttachmentManager";
 
 const NodeDetailsDialog = ({
   nodeDetails,
@@ -26,41 +26,33 @@ const NodeDetailsDialog = ({
   const [isNewLinkDialogOpen, setIsNewLinkDialogOpen] = useState(false);
   const [deletingLinkIds, setDeletingLinkIds] = useState({});
   const [currentNodeDetails, setCurrentNodeDetails] = useState(nodeDetails);
+  const [showAttachmentManager, setShowAttachmentManager] = useState(false);
   
   // Update currentNodeDetails when nodeDetails prop changes
   useEffect(() => {
     setCurrentNodeDetails(nodeDetails);
   }, [nodeDetails]);
 
-  // Update currentNodeDetails when graphData changes
-  useEffect(() => {
-    if (graphData && currentNodeDetails) {
-      // Find the updated node in the refreshed graph data
+  // Re-render component with fresh data after operations
+  const refreshNodeDetails = async () => {
+    try {
+      // Assuming getData fetches the entire graph
+      await getData();
+      
+      // Find the updated node in the refreshed data
+      // This requires you to expose the updated graph data somehow
+      // One approach is to modify getData to return the updated data
       const updatedNode = graphData.nodes.find(node => node.id === currentNodeDetails.id);
       
       if (updatedNode) {
-        // Get all links related to this node
-        const nodeLinks = graphData.links.filter(
-          link => link.source === updatedNode.id || link.target === updatedNode.id
-        );
-        
-        // Update the current node details with the latest data
         setCurrentNodeDetails({
           ...updatedNode,
           originalData: {
             ...updatedNode.originalData,
-            links: nodeLinks
+            links: graphData.links.filter(link => link.source === updatedNode.id || link.target === updatedNode.id)
           }
         });
       }
-    }
-  }, [graphData, currentNodeDetails?.id]);
-
-  // Method to explicitly refresh node details from the API
-  const refreshNodeDetails = async () => {
-    try {
-      await getData();
-      // The useEffect hook above will handle updating the state
     } catch (error) {
       console.error("Failed to refresh node details:", error);
     }
@@ -73,21 +65,24 @@ const NodeDetailsDialog = ({
   const handleNewNodeSave = async (newNode) => {
     // Handle new node creation logic here
     await getData();
+    // After creating a node, refresh the current dialog
+    await refreshNodeDetails();
     setIsNewNodeDialogOpen(false);
   };
-  
   const handleUpdateNodeSave = async (updatedNode) => {
     // Handle updated node logic here
     await getData();
+    // After updating a node, refresh the current dialog
+    await refreshNodeDetails();
     setIsUpdateNodeDialogOpen(false);
   };
 
-  const handleAttachmentAdded = async () => {
-    await refreshNodeDetails();
-  };
+
   const handleNewLinkSave = async (newLink) => {
     // Handle new link creation logic here
     await getData();
+    // After creating a link, refresh the current dialog
+    await refreshNodeDetails();
     setIsNewLinkDialogOpen(false);
   };
 
@@ -124,6 +119,8 @@ const NodeDetailsDialog = ({
     try {
       await axios.delete(`https://localhost:5261/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${targetId}`);
       await getData();
+      // After deleting a link, refresh the current dialog
+      await refreshNodeDetails();
       toast.success("Link deleted successfully.");
     } catch (error) {
       toast.error("Failed to delete the link.");
@@ -137,19 +134,19 @@ const NodeDetailsDialog = ({
     <div
       style={{
         position: "fixed",
-        top: "50%",
-        left: "0",
-        transform: "translateY(-50%)",
-        backgroundColor: "white",
-        padding: "25px",
-        borderRadius: "0 8px 8px 0",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-        zIndex: 1000,
-        maxWidth: "400px",
-        width: "30%",
-        height:"70%",
-        maxHeight: "100vh",
-        overflow: "auto",
+    top: "50%",
+    left: "0",
+    transform: "translateY(-50%)",
+    backgroundColor: "white",
+    padding: "25px",
+    borderRadius: "0 8px 8px 0",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+    zIndex: 1000,
+    maxWidth: "400px",
+    width: "30%",
+    height:"70%",
+    maxHeight: "100vh",
+    overflow: "auto",
       }}
     >
       <div
@@ -163,13 +160,7 @@ const NodeDetailsDialog = ({
         <button
           onClick={() => setIsNewNodeDialogOpen(true)}
           style={{
-            fontSize: "13px",
-            backgroundColor: "#e3f2fd",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            margin: "0 5px",
-            padding: "5px",
+            padding: "8px", backgroundColor: "#e3f2fd", borderRadius: "50%", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
           }}
           title="Add Child Node"
         >
@@ -193,13 +184,7 @@ const NodeDetailsDialog = ({
         <button
           onClick={() => setIsUpdateNodeDialogOpen(true)}
           style={{
-            fontSize: "13px",
-            backgroundColor: "#e3f2fd",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            margin: "0 5px",
-            padding: "5px",
+            padding: "8px", backgroundColor: "#e3f2fd", borderRadius: "50%", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
           }}
           title="Edit Node"
         >
@@ -234,12 +219,25 @@ const NodeDetailsDialog = ({
         </p>
       </div>
 
- 
+      <div style={{  textAlign: "center" }}>
+      <button
+        onClick={() => setShowAttachmentManager(!showAttachmentManager)}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#e3f2fd",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          marginBottom: "20px",
+        }}
+      >
+        {showAttachmentManager ? "Hide Attachments" : "Attachments"}
+      </button>
 
+      {showAttachmentManager && <AttachmentManager nodeDetails={currentNodeDetails}/>}
+    </div>
 
-
-
-
+      
       {/* Related nodes section */}
       {(() => {
         const relatedNodes = getRelatedNodes(currentNodeDetails.id);
@@ -288,11 +286,11 @@ const NodeDetailsDialog = ({
                     <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
                       {relatedNodes.parent.label}
                     </div>
-                    {relatedNodes.parent.category && (
+                    {/* {relatedNodes.parent.category && (
                       <div style={{ fontSize: "14px", color: "#64748b" }}>
                         {relatedNodes.parent.category}
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div style={{ color: "#3b82f6", fontSize: "14px" }}>
                     View &rarr;
@@ -488,10 +486,12 @@ const NodeDetailsDialog = ({
                     <th
                       style={{
                         textAlign: "center",
+                        
                         borderBottom: "2px solid #cbd5e0",
                         width: "60px",
                       }}
                     >
+                      
                     </th>
                   </tr>
                 </thead>
