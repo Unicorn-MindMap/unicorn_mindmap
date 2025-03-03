@@ -11,6 +11,44 @@ const ChatbotDialog = () => {
     setIsOpen(!isOpen);
   };
 
+  // Function to convert basic markdown to HTML
+  const markdownToHtml = (text) => {
+    if (!text) return '';
+    
+    // Convert bold: *text* or **text** to <strong>text</strong>
+    let html = text.replace(/\*\*(.*?)\*\*|\*(.*?)\*/g, (match, p1, p2) => {
+      const content = p1 || p2;
+      return `<strong>${content}</strong>`;
+    });
+    
+    // Convert italic: _text_ to <em>text</em>
+    html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+    
+    // Convert inline code: `code` to <code>code</code>
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Convert bullet lists: * item to <li>item</li>
+    html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
+    
+    // Wrap adjacent <li> elements in <ul>
+    html = html.replace(/(<li>.*?<\/li>)(?:\n|$)+/g, '<ul>$1</ul>');
+    
+    // Convert headings: # Heading to <h1>Heading</h1>
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    
+    // Convert paragraphs with newlines
+    html = html.replace(/\n\s*\n/g, '</p><p>');
+    
+    // Wrap in paragraph tags if not already a block element
+    if (!html.match(/^<[uo]l|<p|<h[1-6]|<blockquote|<pre/)) {
+      html = `<p>${html}</p>`;
+    }
+    
+    return html;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
   
@@ -161,7 +199,14 @@ const ChatbotDialog = () => {
                     wordBreak: 'break-word'
                   }}
                 >
-                  {msg.content}
+                  {msg.role === 'assistant' ? (
+                    <div 
+                      className="formatted-content"
+                      dangerouslySetInnerHTML={{ __html: markdownToHtml(msg.content) }}
+                    />
+                  ) : (
+                    msg.content
+                  )}
                 </div>
               ))
             )}
@@ -237,6 +282,56 @@ const ChatbotDialog = () => {
                 0% { opacity: 0.4; }
                 50% { opacity: 1; }
                 100% { opacity: 0.4; }
+              }
+              
+              /* Style the formatted content */
+              .formatted-content {
+                width: 100%;
+              }
+              
+              .formatted-content p {
+                margin: 0 0 8px 0;
+              }
+              
+              .formatted-content p:last-child {
+                margin-bottom: 0;
+              }
+              
+              .formatted-content strong {
+                font-weight: bold;
+              }
+              
+              .formatted-content em {
+                font-style: italic;
+              }
+              
+              .formatted-content code {
+                background-color: rgba(0, 0, 0, 0.05);
+                padding: 2px 4px;
+                border-radius: 3px;
+                font-family: monospace;
+              }
+              
+              .formatted-content ul, .formatted-content ol {
+                margin: 0;
+                padding-left: 20px;
+              }
+              
+              .formatted-content h1, .formatted-content h2, .formatted-content h3 {
+                margin: 8px 0;
+                font-weight: bold;
+              }
+              
+              .formatted-content h1 {
+                font-size: 1.4em;
+              }
+              
+              .formatted-content h2 {
+                font-size: 1.2em;
+              }
+              
+              .formatted-content h3 {
+                font-size: 1.1em;
               }
             `}
           </style>

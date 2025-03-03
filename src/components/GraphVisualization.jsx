@@ -299,7 +299,8 @@ const GraphVisualization = ({ data, getdata }) => {
     const context = canvas.getContext("2d");
     canvas.width = 256;
     canvas.height = 128;
-
+    
+    
     // Measure text to determine actual space needed
     context.font = "bold 25px Arial";
     const metrics = context.measureText(text);
@@ -419,10 +420,10 @@ const GraphVisualization = ({ data, getdata }) => {
 
   // Function to determine link color based on highlight
   const getLinkColor = (link) => {
-    if (!link) return "gray";
+    if (!link) return "white";
 
     if (!highlightLinks.has(link)) {
-      return link.type === "parent-child" ? "blue" : "black";
+      return link.type === "parent-child" ? "black" : "blue";
     }
 
     // Highlighted links
