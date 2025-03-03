@@ -33,8 +33,6 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
       );
 
       toast.success("Node saved successfully!");
-      console.log(response.data);
-
       // Clear inputs
       setLabel("");
       setCode("");
