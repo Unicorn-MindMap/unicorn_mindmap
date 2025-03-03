@@ -79,7 +79,6 @@ const AddLinkDialog = ({ getdata, nodedetails, onClose, onSave }) => {
                 targetNodeLabel: targetId,
                 content: description,
             };
-            console.log(targetId)
             await axios.post("https://localhost:5261/api/Nodes/links", newLink);
             toast.success("Link added successfully!");
             setTargetId("");

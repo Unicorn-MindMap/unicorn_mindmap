@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus, FaTimes } from "react-icons/fa";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const AttachmentManager = ({ nodeDetails }) => {
   const [attachments, setAttachments] = useState([]);
@@ -84,7 +85,9 @@ const AttachmentManager = ({ nodeDetails }) => {
       setFileType("User Story");
       setShowDialog(false);
       setErrors({});
+      toast.success("Attachment added successfully!");
     } catch (error) {
+      toast.error("Failed to add attachment. Please try again.");
       console.error("Error adding attachment:", error);
       setErrors({ submit: "Failed to add attachment. Please try again." });
     } finally {
@@ -103,8 +106,10 @@ const AttachmentManager = ({ nodeDetails }) => {
         `https://localhost:5261/api/Nodes/attachments_remove/${id}`
       );
       setAttachments(attachments.filter((att) => att.id !== id));
+      toast.success("Attachment deleted successfully!");
     } catch (error) {
       console.error("Error deleting attachment:", error);
+      toast.error("Failed to delete attachment. Please try again.");
     }
   };
 
