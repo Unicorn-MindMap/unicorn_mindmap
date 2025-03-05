@@ -28,7 +28,7 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
       };
 
       const response = await axios.post(
-        `https://localhost:5261/api/Nodes?parentId=${nodeDetails.id}`,
+        `https://mindmap3dinstance-bgg3brbwahgxdqgq.southeastasia-01.azurewebsites.net/api/Nodes?parentId=${nodeDetails.id}`,
         newNode
       );
 

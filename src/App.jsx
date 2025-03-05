@@ -9,7 +9,7 @@ const App = () => {
 
   const getData = async () => {
     try {
-      const response = await axios.get("https://localhost:5261/api/Nodes");
+      const response = await axios.get("https://mindmap3dinstance-bgg3brbwahgxdqgq.southeastasia-01.azurewebsites.net/api/Nodes");
       setDataReceived(response.data.rootNode);
     } catch (error) {
       console.error(error);
