@@ -83,7 +83,7 @@ const AddLinkDialog = ({ getdata, nodedetails, onClose, onSave }) => {
             toast.success("Link added successfully!");
             setTargetId("");
             setDescription("");
-            getdata();
+            await getdata();
             onSave(newLink);
             onClose();
         } catch (error) {

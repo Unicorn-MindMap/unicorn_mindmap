@@ -40,6 +40,7 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
       setCategory("");
       onSave(newNode);
       onClose();
+      getdata();
     } catch (error) {
       console.error("Error saving node:", error);
       toast.error("Error saving node");

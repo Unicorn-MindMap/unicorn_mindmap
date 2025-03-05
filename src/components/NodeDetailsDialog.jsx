@@ -10,19 +10,14 @@ import AttachmentManager from "./AttachmentManager";
 const NodeDetailsDialog = ({
   nodeDetails,
   onClose,
-  highlightDepth,
-  setHighlightDepth,
   getRelatedNodes,
   graphData,
   handleNodeClick,
   getData,
-  isFixed,
-  onReleaseNode
 }) => {
   const [isNewNodeDialogOpen, setIsNewNodeDialogOpen] = useState(false);
   const [isUpdateNodeDialogOpen, setIsUpdateNodeDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [isNewLinkDialogOpen, setIsNewLinkDialogOpen] = useState(false);
   const [deletingLinkIds, setDeletingLinkIds] = useState({});
   const [currentNodeDetails, setCurrentNodeDetails] = useState(nodeDetails);
@@ -63,26 +58,14 @@ const NodeDetailsDialog = ({
   const relatedNodes = getRelatedNodes(currentNodeDetails.id);
 
   const handleNewNodeSave = async (newNode) => {
-    // Handle new node creation logic here
-    await getData();
-    // After creating a node, refresh the current dialog
-    await refreshNodeDetails();
     setIsNewNodeDialogOpen(false);
   };
   const handleUpdateNodeSave = async (updatedNode) => {
-    // Handle updated node logic here
-    await getData();
-    // After updating a node, refresh the current dialog
-    await refreshNodeDetails();
     setIsUpdateNodeDialogOpen(false);
   };
 
 
-  const handleNewLinkSave = async (newLink) => {
-    // Handle new link creation logic here
-    await getData();
-    // After creating a link, refresh the current dialog
-    await refreshNodeDetails();
+  const handleNewLinkSave = async (newLink) => {  
     setIsNewLinkDialogOpen(false);
   };
 
@@ -93,7 +76,6 @@ const NodeDetailsDialog = ({
     if (!confirmDelete) return;
     onClose();
     setLoading(true);
-    setError("");
   
     try {
       await axios.delete(`https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/${currentNodeDetails.id}`);
@@ -101,7 +83,7 @@ const NodeDetailsDialog = ({
       toast.success("Node deleted successfully.");
     } catch (error) {
       toast.error("Failed to delete the node.");
-      setError("Failed to delete the node.");
+      console.error("Failed to delete the node:", error);
     } finally {
       setLoading(false);
     }
@@ -114,17 +96,15 @@ const NodeDetailsDialog = ({
     if (!confirmDelete) return;
     
     setDeletingLinkIds(prev => ({ ...prev, [targetId]: true }));
-    setError("");
 
     try {
       await axios.delete(`https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${targetId}`);
-      await getData();
       // After deleting a link, refresh the current dialog
       await refreshNodeDetails();
       toast.success("Link deleted successfully.");
     } catch (error) {
       toast.error("Failed to delete the link.");
-      setError("Failed to delete the link.");
+      console.error("Failed to delete the link:", error);
     } finally {
       setDeletingLinkIds(prev => ({ ...prev, [targetId]: false }));
     }

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import GraphVisualization from "./components/GraphVisualization";
 import { Toaster } from "react-hot-toast";
+import { ScaleLoader } from "react-spinners";
 
 
 const App = () => {
@@ -26,9 +27,18 @@ const App = () => {
     <div>
       <Toaster position="top-center" />
       {isDataLoading ? (
-        <p style={{ fontSize: '1.5em', color: '#007bff', textAlign: 'center', marginTop: '20px' }}>Loading...</p>
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <ScaleLoader color="#4B5563" loading={isDataLoading} size={15} />
+        </div>
       ) : (
-        <GraphVisualization data={dataReceived} />
+        <GraphVisualization data={dataReceived} getdata={getData} />
       )}
       
     </div>

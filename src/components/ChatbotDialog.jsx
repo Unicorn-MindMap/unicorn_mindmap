@@ -62,7 +62,7 @@ const ChatbotDialog = () => {
   
     try {
       // Send the full chat history to the backend
-      const response = await axios.post('https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/chatbot/gemini', { 
+      const response = await axios.post('https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/chatbot/gemini', { 
         messages: [...chatHistory, userMessage] 
       });
       

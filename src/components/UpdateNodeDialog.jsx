@@ -46,7 +46,7 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
       toast.success("Node updated successfully!");
 
       // Refresh data
-      getdata();
+      await getdata();
       onSave(updatedNode);
       onClose();
     } catch (error) {
