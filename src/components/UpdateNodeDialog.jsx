@@ -38,7 +38,7 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
 
       const response = await axios.put(
 
-        `https://localhost:5261/api/Nodes/${nodeDetails.id}`,
+        `https://mindmap3dinstance-bgg3brbwahgxdqgq.southeastasia-01.azurewebsites.net/api/Nodes/${nodeDetails.id}`,
 
         updatedNode
       );
