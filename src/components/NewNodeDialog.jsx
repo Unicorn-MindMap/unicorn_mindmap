@@ -28,7 +28,7 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
       };
 
       const response = await axios.post(
-        `https://mindmap3dinstance-bgg3brbwahgxdqgq.southeastasia-01.azurewebsites.net/api/Nodes?parentId=${nodeDetails.id}`,
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes?parentId=${nodeDetails.id}`,
         newNode
       );
 
@@ -38,8 +38,6 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
       setCode("");
       setDescription("");
       setCategory("");
-
-      getdata();
       onSave(newNode);
       onClose();
     } catch (error) {

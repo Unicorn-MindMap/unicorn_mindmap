@@ -96,7 +96,7 @@ const NodeDetailsDialog = ({
     setError("");
   
     try {
-      await axios.delete(`https://mindmap3dinstance-bgg3brbwahgxdqgq.southeastasia-01.azurewebsites.net/api/Nodes/${currentNodeDetails.id}`);
+      await axios.delete(`https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/${currentNodeDetails.id}`);
       await getData();
       toast.success("Node deleted successfully.");
     } catch (error) {
@@ -117,7 +117,7 @@ const NodeDetailsDialog = ({
     setError("");
 
     try {
-      await axios.delete(`https://mindmap3dinstance-bgg3brbwahgxdqgq.southeastasia-01.azurewebsites.net/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${targetId}`);
+      await axios.delete(`https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${targetId}`);
       await getData();
       // After deleting a link, refresh the current dialog
       await refreshNodeDetails();
