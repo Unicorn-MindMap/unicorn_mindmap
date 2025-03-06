@@ -1,34 +1,25 @@
 import { useEffect, useState } from "react";
 
-const DeleteConfirmation = ({ onConfirm, onCancel , openProp}) => {
+const DeleteConfirmation = ({ onConfirm, onCancel, openProp }) => {
   const [open, setOpen] = useState(false);
 
-console.log(openProp);
-useEffect(() => {
+  useEffect(() => {
     setOpen(openProp);
-    console.log("open : " , open);  
-}, [openProp]);
+  }, [openProp]);
 
   const styles = {
-  
-    dialogBackdrop: {
-      position: "fixed",
-      top: "0",
-      left: "0",
-      right: "0",
-      bottom: "0",
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    dialogContent: {
+    dialogContainer: {
+      position: "relative",
+      bottom: "70px",
+      right: open ? "10px" : "-350px", // Slide from right
+      transform: "translateY(-50%)",
+      transition: "right 0.3s ease-in-out",
       backgroundColor: "white",
       borderRadius: "8px",
       padding: "20px",
       textAlign: "center",
       width: "300px",
-      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
     },
     dialogTitle: {
       fontSize: "18px",
@@ -50,7 +41,7 @@ useEffect(() => {
       border: "none",
     },
     confirmButton: {
-        backgroundColor: "rgb(255, 100, 100)",
+      backgroundColor: "rgb(255, 100, 100)",
       color: "white",
       padding: "8px 12px",
       borderRadius: "6px",
@@ -61,30 +52,29 @@ useEffect(() => {
   };
 
   return (
-    <>
-     
-      {open && (
-        <div style={styles.dialogBackdrop} onClick={() => { setOpen(false); onCancel && onCancel(); }}>
-          <div style={styles.dialogContent} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.dialogTitle}>Are you sure you want to delete this?</div>
-            <div style={styles.buttonContainer}>
-              <button
-                style={styles.cancelButton}
-                onClick={() => { setOpen(false); onCancel && onCancel(); }}
-              >
-                Cancel
-              </button>
-              <button
-                style={styles.confirmButton}
-                onClick={() => { setOpen(false); onConfirm(); }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    <div style={styles.dialogContainer}>
+      <div style={styles.dialogTitle}>Are you sure you want to delete this?</div>
+      <div style={styles.buttonContainer}>
+        <button
+          style={styles.cancelButton}
+          onClick={() => {
+            setOpen(false);
+            onCancel && onCancel();
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          style={styles.confirmButton}
+          onClick={() => {
+            setOpen(false);
+            onConfirm();
+          }}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
   );
 };
 
