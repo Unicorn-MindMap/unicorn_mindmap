@@ -24,7 +24,7 @@ const AddLinkDialog = ({ getdata, nodedetails, onClose, onSave }) => {
     useEffect(() => {
         const fetchNodes = async () => {
             try {
-                const response = await axios.get("https://localhost:5261/api/Nodes");
+                const response = await axios.get("https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes");
 
                 // Ensure the response contains an array of nodes
                 const nodeData = response.data;
@@ -79,11 +79,11 @@ const AddLinkDialog = ({ getdata, nodedetails, onClose, onSave }) => {
                 targetNodeLabel: targetId,
                 content: description,
             };
-            await axios.post("https://localhost:5261/api/Nodes/links", newLink);
+            await axios.post("https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/links", newLink);
             toast.success("Link added successfully!");
             setTargetId("");
             setDescription("");
-            getdata();
+            await getdata();
             onSave(newLink);
             onClose();
         } catch (error) {

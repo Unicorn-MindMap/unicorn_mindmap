@@ -6,28 +6,27 @@ import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
 import UpdateNodeDialog from "./UpdateNodeDialog";
 import AttachmentManager from "./AttachmentManager";
+import DeleteConfirmation from "./DeleteConfirmation";
 
 
 const NodeDetailsDialog = ({
   nodeDetails,
   onClose,
-  highlightDepth,
-  setHighlightDepth,
   getRelatedNodes,
   graphData,
   handleNodeClick,
   getData,
-  isFixed,
-  onReleaseNode
 }) => {
   const [isNewNodeDialogOpen, setIsNewNodeDialogOpen] = useState(false);
   const [isUpdateNodeDialogOpen, setIsUpdateNodeDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [isNewLinkDialogOpen, setIsNewLinkDialogOpen] = useState(false);
   const [deletingLinkIds, setDeletingLinkIds] = useState({});
   const [currentNodeDetails, setCurrentNodeDetails] = useState(nodeDetails);
   const [showAttachmentManager, setShowAttachmentManager] = useState(false);
+  const [showDeleteNodeConfirm, setShowDeleteNodeConfirm] = useState(false);
+  const [showDeleteLinkConfirm, setShowDeleteLinkConfirm] = useState(false);
+  const [selectedLinkId, setSelectedLinkId] = useState(null);
   
   // Update currentNodeDetails when nodeDetails prop changes
   useEffect(() => {
@@ -64,91 +63,82 @@ const NodeDetailsDialog = ({
   const relatedNodes = getRelatedNodes(currentNodeDetails.id);
 
   const handleNewNodeSave = async (newNode) => {
-    // Handle new node creation logic here
-    await getData();
-    // After creating a node, refresh the current dialog
-    await refreshNodeDetails();
     setIsNewNodeDialogOpen(false);
   };
   const handleUpdateNodeSave = async (updatedNode) => {
-    // Handle updated node logic here
-    await getData();
-    // After updating a node, refresh the current dialog
-    await refreshNodeDetails();
     setIsUpdateNodeDialogOpen(false);
+    setCurrentNodeDetails(updatedNode);
   };
 
 
-  const handleNewLinkSave = async (newLink) => {
-    // Handle new link creation logic here
-    await getData();
-    // After creating a link, refresh the current dialog
+  const handleNewLinkSave = async (newLink) => {  
     await refreshNodeDetails();
     setIsNewLinkDialogOpen(false);
   };
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this node?"
-    );
-    if (!confirmDelete) return;
-    onClose();
+    setShowDeleteNodeConfirm(false); // Close confirmation dialog
     setLoading(true);
-    setError("");
   
     try {
-      await axios.delete(`https://localhost:5261/api/Nodes/${currentNodeDetails.id}`);
-      await getData();
-      toast.success("Node deleted successfully.");
+      await axios.delete(
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/${currentNodeDetails.id}`
+      ).then(async(response) => {
+
+        await getData();
+        toast.success("Node deleted successfully.");
+        onClose(); // Close the details dialog after successful deletion
+      });
     } catch (error) {
       toast.error("Failed to delete the node.");
-      setError("Failed to delete the node.");
+      console.error("Failed to delete the node:", error);
     } finally {
       setLoading(false);
     }
   };
-
-  const handleDeleteLink = async (targetId) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this link?"
-    );
-    if (!confirmDelete) return;
-    
-    setDeletingLinkIds(prev => ({ ...prev, [targetId]: true }));
-    setError("");
-
+  
+  const handleDeleteLink = async () => {
+    setShowDeleteLinkConfirm(false); // Close confirmation dialog
+    if (!selectedLinkId) return;
+  
+    setDeletingLinkIds((prev) => ({ ...prev, [selectedLinkId]: true }));
+  
     try {
-      await axios.delete(`https://localhost:5261/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${targetId}`);
-      await getData();
-      // After deleting a link, refresh the current dialog
+      await axios.delete(
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${selectedLinkId}`
+      );
+  
+      // Refresh node details to update links
       await refreshNodeDetails();
+  
       toast.success("Link deleted successfully.");
+      // Note: Not closing the dialog after link deletion
     } catch (error) {
       toast.error("Failed to delete the link.");
-      setError("Failed to delete the link.");
+      console.error("Failed to delete the link:", error);
     } finally {
-      setDeletingLinkIds(prev => ({ ...prev, [targetId]: false }));
+      setDeletingLinkIds((prev) => ({ ...prev, [selectedLinkId]: false }));
+      setSelectedLinkId(null);
     }
   };
-
   return (
     
     <div
       style={{
         position: "fixed",
-    top: "50%",
-    left: "0",
-    transform: "translateY(-50%)",
-    backgroundColor: "white",
-    padding: "25px",
-    borderRadius: "0 8px 8px 0",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-    zIndex: 1000,
-    maxWidth: "400px",
-    width: "30%",
-    height:"70%",
-    maxHeight: "100vh",
-    overflow: "auto",
+        top: "50%",
+        left: "0",
+        transform: "translateY(-50%)",
+        backgroundColor: "white",
+        padding: "25px",
+        borderRadius: "0 8px 8px 0",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+        zIndex: 1000,
+        maxWidth: "400px",
+        width: "30%",
+        height:"70%",
+        maxHeight: "100vh",
+        overflow: "auto",
       }}
     >
       <div
@@ -442,181 +432,212 @@ const NodeDetailsDialog = ({
         );
       })()}
 
-      {/* Original node data (links) */}
-      {currentNodeDetails.originalData &&
-        currentNodeDetails.originalData.links &&
-        currentNodeDetails.originalData.links.length > 0 && (
-          <div style={{ marginTop: "20px" }}>
-            <h3
-              style={{
-                fontSize: "18px",
-                marginBottom: "12px",
-                color: "#34495e",
-              }}
-            >
-              Source Links Content
-            </h3>
-            <div
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: "6px",
-                overflow: "hidden",
-                marginBottom: "10px",
-              }}
-            >
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ backgroundColor: "#f1f5f9" }}>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px",
-                        borderBottom: "2px solid #cbd5e0",
-                      }}
-                    >
-                      Target
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px",
-                        borderBottom: "2px solid #cbd5e0",
-                      }}
-                    >
-                      Content
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "center",
-                        
-                        borderBottom: "2px solid #cbd5e0",
-                        width: "60px",
-                      }}
-                    >
-                      
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentNodeDetails.originalData.links.map((link, index) => {
-                    const targetNode = graphData.nodes.find(
-                      (n) => n.id === link.id
-                    );
-                    return (
-                      <tr
-                        key={index}
-                        style={{
-                          backgroundColor:
-                            index % 2 === 0 ? "#ffffff" : "#f8fafc",
-                        }}
-                      >
-                        <td
-                          style={{
-                            padding: "12px",
-                            borderBottom: "1px solid #e2e8f0",
-                          }}
-                        >
-                          {targetNode ? targetNode.label : "Unknown"}
-                        </td>
-                        <td
-                          style={{
-                            padding: "12px",
-                            borderBottom: "1px solid #e2e8f0",
-                          }}
-                        >
-                          {link.content}
-                        </td>
-                        <td
-                          style={{
-                            padding: "12px",
-                            borderBottom: "1px solid #e2e8f0",
-                            textAlign: "center",
-                          }}
-                        >
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteLink(link.id);
-                            }}
-                            disabled={deletingLinkIds[link.id]}
-                            style={{
-                              backgroundColor: "transparent",
-                              border: "none",
-                              color: "#ef4444",
-                              cursor: "pointer",
-                              fontSize: "16px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              padding: "4px",
-                              borderRadius: "4px",
-                              transition: "background-color 0.2s",
-                            }}
-                            title="Delete link"
-                            onMouseOver={(e) => 
-                              (e.currentTarget.style.backgroundColor = "#fee2e2")
-                            }
-                            onMouseOut={(e) => 
-                              (e.currentTarget.style.backgroundColor = "transparent")
-                            }
-                          >
-                            {deletingLinkIds[link.id] ? (
-                              <span>...</span>
-                            ) : (
-                              <FaTrash />
-                            )}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      <button
-        onClick={handleDelete}
-        disabled={loading}
+     {/* Original node data (links) */}
+{currentNodeDetails.originalData &&
+  currentNodeDetails.originalData.links &&
+  currentNodeDetails.originalData.links.length > 0 && (
+    <div style={{ marginTop: "20px" }}>
+      <h3
         style={{
-          padding: "8px 16px",
-          backgroundColor: "rgb(255, 100, 100)",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "16px",
+          fontSize: "18px",
+          marginBottom: "12px",
+          color: "#34495e",
         }}
       >
-        {loading ? "Deleting..." : "Delete Node"}
-      </button>
-      {isNewNodeDialogOpen && (
-        <NewNodeDialog
-          getdata={getData}
-          nodeDetails={currentNodeDetails}
-          onClose={() => setIsNewNodeDialogOpen(false)}
-          onSave={handleNewNodeSave}
-        />
-      )}
-      {isUpdateNodeDialogOpen && (
-        <UpdateNodeDialog
-          getdata={getData}
-          nodeDetails={currentNodeDetails}
-          onClose={() => setIsUpdateNodeDialogOpen(false)}
-          onSave={handleUpdateNodeSave}
-        />
-      )}
-      {isNewLinkDialogOpen && (
-        <AddLinkDialog
-          getdata={getData}
-          nodedetails={currentNodeDetails}
-          onClose={() => setIsNewLinkDialogOpen(false)}
-          onSave={handleNewLinkSave}
-        />
-      )}
+        Source Links Content
+      </h3>
+      <div
+        style={{
+          border: "1px solid #e2e8f0",
+          borderRadius: "6px",
+          overflow: "hidden",
+          marginBottom: "10px",
+        }}
+      >
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ backgroundColor: "#f1f5f9" }}>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "12px",
+                  borderBottom: "2px solid #cbd5e0",
+                }}
+              >
+                Target
+              </th>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "12px",
+                  borderBottom: "2px solid #cbd5e0",
+                }}
+              >
+                Content
+              </th>
+              <th
+                style={{
+                  textAlign: "center",
+                  borderBottom: "2px solid #cbd5e0",
+                  width: "60px",
+                }}
+              >
+                
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentNodeDetails.originalData.links.map((link, index) => {
+              const targetNode = graphData.nodes.find(
+                (n) => n.id === link.id
+              );
+              return (
+                <tr
+                  key={index}
+                  style={{
+                    backgroundColor:
+                      index % 2 === 0 ? "#ffffff" : "#f8fafc",
+                  }}
+                >
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #e2e8f0",
+                    }}
+                  >
+                    {targetNode ? targetNode.label : "Unknown"}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #e2e8f0",
+                    }}
+                  >
+                    {link.content}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #e2e8f0",
+                      textAlign: "center",
+                    }}
+                  >
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedLinkId(link.id);
+                        setShowDeleteLinkConfirm(true);
+                      }}
+                      disabled={deletingLinkIds[link.id]}
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "4px",
+                        borderRadius: "4px",
+                        transition: "background-color 0.2s",
+                      }}
+                      title="Delete link"
+                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
+                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                    >
+                      {deletingLinkIds[link.id] ? (
+                        <span>...</span>
+                      ) : (
+                        <FaTrash />
+                      )}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
+  )}
+
+<button
+  onClick={() => setShowDeleteNodeConfirm(true)}
+  disabled={loading}
+  style={{
+    padding: "8px 16px",
+    backgroundColor: "rgb(255, 100, 100)",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontSize: "16px",
+  }}
+>
+  {loading ? "Deleting..." : "Delete Node"}
+</button>
+
+{/* Delete link confirmation modal */}
+{showDeleteLinkConfirm && (
+  <div style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1100
+  }}>
+    <DeleteConfirmation
+    openProp={true}
+      onConfirm={handleDeleteLink}
+      onCancel={() => setShowDeleteLinkConfirm(false)}
+    />
+  </div>
+)}
+
+{/* Delete node confirmation modal */}
+{showDeleteNodeConfirm && (
+ 
+    <DeleteConfirmation
+    openProp={true}
+      onConfirm={handleDelete}
+      onCancel={() => setShowDeleteNodeConfirm(false)}
+    />
+
+)}
+
+{isNewNodeDialogOpen && (
+  <NewNodeDialog
+    getdata={getData}
+    nodeDetails={currentNodeDetails}
+    onClose={() => setIsNewNodeDialogOpen(false)}
+    onSave={handleNewNodeSave}
+  />
+)}
+{isUpdateNodeDialogOpen && (
+  <UpdateNodeDialog
+    getdata={getData}
+    nodeDetails={currentNodeDetails}
+    onClose={() => setIsUpdateNodeDialogOpen(false)}
+    onSave={handleUpdateNodeSave}
+  />
+)}
+{isNewLinkDialogOpen && (
+  <AddLinkDialog
+    getdata={getData}
+    nodedetails={currentNodeDetails}
+    onClose={() => setIsNewLinkDialogOpen(false)}
+    onSave={handleNewLinkSave}
+  />
+)}
+</div>
   
-  );
+);
 };
 
 export default NodeDetailsDialog;

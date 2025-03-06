@@ -5,7 +5,7 @@ const DownloadGraphButton = () => {
   const handleDownload = async () => {
     try {
       const response = await axios.get(
-        "https://localhost:5261/api/Nodes/download",
+        "https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/download",
         {
           responseType: "blob", // Ensure response is treated as a file
         }

@@ -38,7 +38,7 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
 
       const response = await axios.put(
 
-        `https://localhost:5261/api/Nodes/${nodeDetails.id}`,
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/${nodeDetails.id}`,
 
         updatedNode
       );
@@ -46,7 +46,7 @@ const UpdateNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
       toast.success("Node updated successfully!");
 
       // Refresh data
-      getdata();
+      await getdata();
       onSave(updatedNode);
       onClose();
     } catch (error) {

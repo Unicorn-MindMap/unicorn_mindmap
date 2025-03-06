@@ -19,8 +19,7 @@ const GraphVisualization = ({ data, getdata }) => {
   const [highlightDepth, setHighlightDepth] = useState(0);
   const [showNodeDetails, setShowNodeDetails] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(null);
-  // const [draggingEnabled, setDraggingEnabled] = useState(true);
-  // const [fixedNodes, setFixedNodes] = useState(new Set());
+ 
 
   useEffect(() => {
     const nodes = [];
@@ -424,11 +423,11 @@ const GraphVisualization = ({ data, getdata }) => {
     if (!link) return "white";
 
     if (!highlightLinks.has(link)) {
-      return link.type === "parent-child" ? "black" : "blue";
+      return link.type === "parent-child" ? "green" : "blue";
     }
 
     // Highlighted links
-    return "blue";
+    return link.type === "parent-child" ? "green" : "blue";
   };
 
   // Function to close the node details dialog
