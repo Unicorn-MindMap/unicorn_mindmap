@@ -99,7 +99,6 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
               width: "100%",
               padding: "8px",
               margin: "8px 0",
-              
             }}
           />
         </label>
@@ -115,25 +114,29 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
               width: "100%",
               padding: "8px",
               margin: "8px 0",
-              
             }}
           />
         </label>
       </div>
-      <div style={{ marginBottom: "10px", maxWidth: "96%" }}>
+      <div style={{ marginBottom: "10px", maxWidth: "100%" }}>
         <label>
           Category:
-          <input
-            type="text"
+          <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             style={{
               width: "100%",
               padding: "8px",
               margin: "8px 0",
-              
             }}
-          />
+          >
+            {/* <option value="">Select a category / Type</option> */}
+            <option value="Frontend">Frontend</option>
+            <option value="Backend">Backend</option>
+            <option value="Database">Database</option>
+            <option value="DevOps">DevOps</option>
+            <option value="Testing">Testing</option>
+          </select>
         </label>
       </div>
       <div style={{ marginBottom: "10px", maxWidth: "96%" }}>
@@ -146,7 +149,6 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
               width: "100%",
               padding: "8px",
               margin: "8px 0",
-              
             }}
           />
         </label>
