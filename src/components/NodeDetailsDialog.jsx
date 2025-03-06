@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import UpdateNodeDialog from "./UpdateNodeDialog";
 import AttachmentManager from "./AttachmentManager";
 
+
 const NodeDetailsDialog = ({
   nodeDetails,
   onClose,
@@ -131,6 +132,7 @@ const NodeDetailsDialog = ({
   };
 
   return (
+    
     <div
       style={{
         position: "fixed",
@@ -613,6 +615,7 @@ const NodeDetailsDialog = ({
         />
       )}
     </div>
+  
   );
 };
 

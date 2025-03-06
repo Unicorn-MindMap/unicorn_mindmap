@@ -5,6 +5,7 @@ import NodeDetailsDialog from "./NodeDetailsDialog";
 import DownloadGraphButton from "./Download";
 import ChatbotDialog from "./ChatbotDialog";
 
+
 const GraphVisualization = ({ data, getdata }) => {
   const fgRef = useRef();
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
@@ -688,6 +689,7 @@ const GraphVisualization = ({ data, getdata }) => {
       />
 
       {/* Node Details Dialog */}
+      
       <NodeDetailsDialog
         getData={getdata}
         nodeDetails={nodeDetails}
@@ -698,6 +700,7 @@ const GraphVisualization = ({ data, getdata }) => {
         graphData={graphData}
         handleNodeClick={handleNodeClick}
       />
+      
     </div>
   );
 };
