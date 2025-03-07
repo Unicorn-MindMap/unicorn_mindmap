@@ -11,7 +11,8 @@ const DeleteConfirmation = ({ onConfirm, onCancel, openProp }) => {
     dialogContainer: {
       position: "relative",
       bottom: "70px",
-      right: open ? "10px" : "-350px", // Slide from right
+      marginBottom: "20px",
+      right: open ? "20px" : "-350px", // Slide from right
       transform: "translateY(-50%)",
       transition: "right 0.3s ease-in-out",
       backgroundColor: "white",

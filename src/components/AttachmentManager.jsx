@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaTimes } from "react-icons/fa";
+import { FaPlus, FaTimes, FaTrash } from "react-icons/fa";
 import axios from "axios";
 import toast from "react-hot-toast";
+import DeleteConfirmation from "./DeleteConfirmation";
 
 const AttachmentManager = ({ nodeDetails }) => {
   const [attachments, setAttachments] = useState([]);
@@ -11,6 +12,9 @@ const AttachmentManager = ({ nodeDetails }) => {
   const [fileType, setFileType] = useState("User Story");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  // Add states for delete confirmation
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteAttachmentId, setDeleteAttachmentId] = useState(null);
 
   const fileTypes = ["User Story", "User Guide", "Test Cases"];
 
@@ -25,7 +29,7 @@ const AttachmentManager = ({ nodeDetails }) => {
         console.error("Error fetching attachments:", error);
       }
     };
-    
+
     if (nodeDetails && nodeDetails.id) {
       fetchAttachments();
     }
@@ -34,11 +38,11 @@ const AttachmentManager = ({ nodeDetails }) => {
   // Validate inputs
   const validateInputs = () => {
     const newErrors = {};
-    
+
     if (!fileName.trim()) {
       newErrors.fileName = "Link name is required";
     }
-    
+
     if (!fileUrl.trim()) {
       newErrors.fileUrl = "URL is required";
     } else {
@@ -50,35 +54,35 @@ const AttachmentManager = ({ nodeDetails }) => {
         newErrors.fileUrl = "Please enter a valid URL";
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleAddAttachment = async () => {
     if (!validateInputs()) return;
-    
+
     setIsLoading(true);
-    
+
     // Ensure URL has http/https
     const normalizedUrl = fileUrl.startsWith('http') ? fileUrl : `https://${fileUrl}`;
-    
+
     const newAttachment = {
       id: "",
       fileName,
       fileType,
       fileUrl: normalizedUrl,
     };
-    
+
     try {
       const response = await axios.post(
         `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/attachment_add/${nodeDetails.id}`,
         newAttachment
       );
-      
+
       // Update attachments with the new one from response
       setAttachments([...attachments, response.data]);
-      
+
       // Reset form
       setFileName("");
       setFileUrl("");
@@ -95,22 +99,29 @@ const AttachmentManager = ({ nodeDetails }) => {
     }
   };
 
-  const handleDelete = async (id) => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to delete this attachment?"
-    );
-    if (!isConfirmed) return;
-    
+  // This will be called when delete is confirmed
+  const handleDeleteConfirm = async () => {
+    if (!deleteAttachmentId) return;
+
     try {
       await axios.delete(
-        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/attachments_remove/${id}`
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/attachments_remove/${deleteAttachmentId}`
       );
-      setAttachments(attachments.filter((att) => att.id !== id));
+      setAttachments(attachments.filter((att) => att.id !== deleteAttachmentId));
       toast.success("Attachment deleted successfully!");
     } catch (error) {
       console.error("Error deleting attachment:", error);
       toast.error("Failed to delete attachment. Please try again.");
+    } finally {
+      setShowDeleteConfirm(false);
+      setDeleteAttachmentId(null);
     }
+  };
+
+  // Cancel delete operation
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+    setDeleteAttachmentId(null);
   };
 
   // Helper function to safely format URLs
@@ -125,7 +136,7 @@ const AttachmentManager = ({ nodeDetails }) => {
         padding: "16px",
         border: "1px solid #e5e7eb",
         borderRadius: "8px",
-        width: "100%",
+        width: "90%",
         maxWidth: "420px",
         margin: "0 auto",
         backgroundColor: "#ffffff",
@@ -173,6 +184,7 @@ const AttachmentManager = ({ nodeDetails }) => {
                 alignItems: "center",
                 padding: "12px 0",
                 borderBottom: "1px solid #f3f4f6",
+                position: "relative",
               }}
             >
               <a
@@ -185,19 +197,35 @@ const AttachmentManager = ({ nodeDetails }) => {
                   ({attachment.fileType})
                 </span>
               </a>
-              <button
-                onClick={() => handleDelete(attachment.id)}
-                style={{
-                  color: "#9ca3af",
-                  background: "none",
-                  border: "none",
-                  padding: "4px",
-                  cursor: "pointer",
-                }}
-                aria-label="Delete attachment"
-              >
-                <FaTimes size={16} />
-              </button>
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => {
+                    setDeleteAttachmentId(attachment.id);
+                    setShowDeleteConfirm(true);
+                  }}
+                  style={{
+                    color: "#9ca3af",
+                    background: "none",
+                    border: "none",
+                    padding: "4px",
+                    cursor: "pointer",
+                  }}
+                  aria-label="Delete attachment"
+                >
+                  <FaTrash size={16} />
+                </button>
+
+                {/* Show delete confirmation for this attachment */}
+                {showDeleteConfirm && deleteAttachmentId === attachment.id && (
+                  <div style={{ position: "absolute", top: "0", right: "10px", zIndex: 10 }}>
+                    <DeleteConfirmation
+                      openProp={showDeleteConfirm}
+                      onConfirm={handleDeleteConfirm}
+                      onCancel={handleDeleteCancel}
+                    />
+                  </div>
+                )}
+              </div>
             </li>
           ))}
         </ul>
@@ -270,26 +298,25 @@ const AttachmentManager = ({ nodeDetails }) => {
                     marginBottom: "4px",
                   }}
                 >
-                  Link Name
+                  File Type
                 </label>
-                <input
-                  type="text"
-                  placeholder="Enter URL Name"
-                  value={fileName}
-                  onChange={(e) => setFileName(e.target.value)}
+                <select
+                  value={fileType}
+                  onChange={(e) => setFileType(e.target.value)}
                   style={{
                     width: "100%",
                     padding: "8px",
-                    border: errors.fileName ? "1px solid #ef4444" : "1px solid #d1d5db",
+                    border: "1px solid #d1d5db",
                     borderRadius: "4px",
                     fontSize: "0.875rem",
                   }}
-                />
-                {errors.fileName && (
-                  <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "4px" }}>
-                    {errors.fileName}
-                  </p>
-                )}
+                >
+                  {fileTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div style={{ marginBottom: "16px" }}>
@@ -334,26 +361,29 @@ const AttachmentManager = ({ nodeDetails }) => {
                     marginBottom: "4px",
                   }}
                 >
-                  File Type
+                  Link Name
                 </label>
-                <select
-                  value={fileType}
-                  onChange={(e) => setFileType(e.target.value)}
+                <input
+                  type="text"
+                  placeholder="Enter URL Name"
+                  value={fileName}
+                  onChange={(e) => setFileName(e.target.value)}
                   style={{
                     width: "100%",
                     padding: "8px",
-                    border: "1px solid #d1d5db",
+                    border: errors.fileName ? "1px solid #ef4444" : "1px solid #d1d5db",
                     borderRadius: "4px",
                     fontSize: "0.875rem",
                   }}
-                >
-                  {fileTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
+                />
+                {errors.fileName && (
+                  <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "4px" }}>
+                    {errors.fileName}
+                  </p>
+                )}
               </div>
+
+
 
               {errors.submit && (
                 <p style={{ color: "#ef4444", fontSize: "0.875rem", marginBottom: "8px" }}>
