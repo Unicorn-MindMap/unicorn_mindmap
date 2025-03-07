@@ -27,6 +27,8 @@ const NodeDetailsDialog = ({
   const [showDeleteNodeConfirm, setShowDeleteNodeConfirm] = useState(false);
   const [showDeleteLinkConfirm, setShowDeleteLinkConfirm] = useState(false);
   const [selectedLinkId, setSelectedLinkId] = useState(null);
+  const [isMinimized, setIsMinimized] = useState(false);
+const [isMaximized, setIsMaximized] = useState(false);
   
   // Update currentNodeDetails when nodeDetails prop changes
   useEffect(() => {
@@ -56,6 +58,21 @@ const NodeDetailsDialog = ({
     } catch (error) {
       console.error("Failed to refresh node details:", error);
     }
+  };
+
+  const handleMinimize = () => {
+    setIsMinimized(true);
+    setIsMaximized(false);
+  };
+
+  const handleMaximize = () => {
+    setIsMaximized(true);
+    setIsMinimized(false);
+  };
+
+  const handleRestore = () => {
+    setIsMaximized(false);
+    setIsMinimized(false);
   };
 
   if (!currentNodeDetails) return null;
@@ -97,6 +114,7 @@ const NodeDetailsDialog = ({
     }
   };
   
+  
   const handleDeleteLink = async () => {
     setShowDeleteLinkConfirm(false); // Close confirmation dialog
     if (!selectedLinkId) return;
@@ -121,31 +139,150 @@ const NodeDetailsDialog = ({
       setSelectedLinkId(null);
     }
   };
+
+   // Render minimized view when isMinimized is true
+   if (isMinimized) {
+    return (
+      <div 
+        style={{
+          position: "fixed",
+          bottom: "0",
+          left: "0",
+          backgroundColor: "white",
+          padding: "10px 15px",
+          borderRadius: "0 8px 0 0",
+          boxShadow: "0 -2px 10px rgba(0, 0, 0, 0.1)",
+          zIndex: 1000,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "200px",
+        }}
+        onClick={handleRestore}
+      >
+        <span style={{ fontWeight: "500", fontSize: "14px", marginRight: "10px" }}>
+          {currentNodeDetails.label}
+        </span>
+        <div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRestore();
+            }}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "16px",
+              padding: "2px 5px",
+            }}
+            title="Restore"
+          >
+            ↗
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
     
     <div
-      style={{
-        position: "fixed",
-        top: "50%",
-        left: "0",
-        transform: "translateY(-50%)",
-        backgroundColor: "white",
-        padding: "25px",
-        borderRadius: "0 8px 8px 0",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-        zIndex: 1000,
-        maxWidth: "400px",
-        width: "30%",
-        height:"70%",
-        maxHeight: "100vh",
-        overflow: "auto",
-      }}
+    style={{
+      position: "fixed",
+      top: isMaximized ? "0" : "50%",
+      left: "0",
+      transform: isMaximized ? "none" : "translateY(-50%)",
+      backgroundColor: "white",
+      padding: "25px",
+      borderRadius: isMaximized ? "0" : "0 8px 8px 0",
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+      zIndex: 1000,
+      width: isMaximized ? "70%" : "30%",
+      height: isMaximized ? "90%" : "70%",
+      maxWidth: isMaximized ? "none" : "400px",
+      maxHeight: isMaximized ? "none" : "100vh",
+      overflow: "auto",
+      
+    }}
     >
+<div
+        style={{
+          position: "absolute",
+          top: "5px",
+          right: "5px",
+          display: "flex",
+          zIndex: 1001,
+        }}
+      >
+        
+        <button
+          onClick={handleMinimize}
+          style={{
+            background: "none",
+            border: "none", 
+            fontSize: "18px",
+            cursor: "pointer",
+            padding: "5px 8px",
+            color: "#555",
+          }}
+          title="Minimize"
+        >
+          —
+        </button>
+        {isMaximized ? (
+          <button
+            onClick={handleRestore}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: "18px",
+              cursor: "pointer",
+              padding: "5px 8px",
+              color: "#555",
+            }}
+            title="Restore"
+          >
+            ⧉
+          </button>
+        ) : (
+          <button
+            onClick={handleMaximize}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: "18px",
+              cursor: "pointer",
+              padding: "5px 8px",
+              color: "#555",
+            }}
+            title="Maximize"
+          >
+            ⤢
+          </button>
+        )}
+        <button
+          onClick={onClose}
+          style={{
+            background: "none",
+            border: "none",
+            fontSize: "22px",
+            cursor: "pointer",
+            padding: "0 8px",
+            color: "#555",
+          }}
+          title="Close"
+        >
+          ×
+        </button>
+      </div>
+
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          marginTop: "15px",
         }}
       >
         <h3>{currentNodeDetails.label} <br /> <span style={{fontSize:"12px"}}>{currentNodeDetails.category}</span></h3>
@@ -182,21 +319,7 @@ const NodeDetailsDialog = ({
         >
           <FaEdit />
         </button>
-        <button
-          onClick={onClose}
-          style={{
-            background: "none",
-            border: "none",
-            fontSize: "22px",
-            cursor: "pointer",
-            marginLeft: "5px",
-          }}
-          title="Close"
-        >
-          ×
-        </button>
       </div>
-
       <div
         style={{
           marginBottom: "20px",
@@ -580,13 +703,13 @@ const NodeDetailsDialog = ({
 
 {/* Delete link confirmation modal */}
 {showDeleteLinkConfirm && (
-  
+  <div style={{ position: "relative",bottom: "150px",left:"50px", right: "0px", zIndex: 10 }}>
     <DeleteConfirmation
     openProp={true}
       onConfirm={handleDeleteLink}
       onCancel={() => setShowDeleteLinkConfirm(false)}
     />
-  
+  </div>
 )}
 
 {/* Delete node confirmation modal */}
