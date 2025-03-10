@@ -11,7 +11,7 @@ const App = () => {
 
   const getData = async () => {
     try {
-      const response = await axios.get("https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes");
+      const response = await axios.get("https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes");
       // const response = await axios.get("https://localhost:5261/api/Nodes");
       setDataReceived(response.data.rootNode);
       setIsDataLoading(false);

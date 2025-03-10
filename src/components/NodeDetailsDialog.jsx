@@ -100,7 +100,7 @@ const NodeDetailsDialog = ({
   
     try {
       await axios.delete(
-        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/${currentNodeDetails.id}`
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/${currentNodeDetails.id}`
       ).then(async(response) => {
 
         await getData();
@@ -124,7 +124,7 @@ const NodeDetailsDialog = ({
   
     try {
       await axios.delete(
-        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${selectedLinkId}`
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${selectedLinkId}`
       );
   
       // Refresh node details to update links
@@ -481,7 +481,7 @@ const NodeDetailsDialog = ({
 
       
       {/* Related nodes section */}
-      <div style={{ marginTop: "20px" }}>
+      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
   <LinkDetailsManager
     currentNodeDetails={currentNodeDetails} 
     refreshNodeDetails={refreshNodeDetails} 

@@ -27,7 +27,7 @@ const LinkDetailsManager = ({ currentNodeDetails, refreshNodeDetails, handleNode
         nodeIds.map(
           (id) =>
             axios
-              .get(`https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/${id}`)
+              .get(`https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/${id}`)
               .then((res) => ({ id, label: res.data.label || `Node ${id}` }))
               .catch(() => ({ id, label: `Node ${id}` })) // Fallback if fetch fails
         )
@@ -51,7 +51,7 @@ const LinkDetailsManager = ({ currentNodeDetails, refreshNodeDetails, handleNode
     setLoading(true);
     try {
       const response = await axios.get(
-        "https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/links"
+        "https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/links"
       );
       // const response = await axios.get(
       //   "https://localhost:5261/api/Nodes/links"
@@ -101,7 +101,7 @@ const LinkDetailsManager = ({ currentNodeDetails, refreshNodeDetails, handleNode
 
   const handleEditSave = async (link) => {
     try {
-      await axios.put(`https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/links/${link.id}`, {
+      await axios.put(`https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/links/${link.id}`, {
         ...link,
         content: editContent,
       });
@@ -148,7 +148,7 @@ const LinkDetailsManager = ({ currentNodeDetails, refreshNodeDetails, handleNode
       }
 
       // Use the correct URL format with proper parameters
-      await axios.delete(`https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/links?sourceId=${linkToDelete.sourceNodeId}&targetId=${linkToDelete.targetNodeId}`);
+      await axios.delete(`https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/links?sourceId=${linkToDelete.sourceNodeId}&targetId=${linkToDelete.targetNodeId}`);
 
       // Update local state
       setLinks((prevLinks) => prevLinks.filter((link) => link.id !== linkId));
