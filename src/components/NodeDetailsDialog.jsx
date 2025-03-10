@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import UpdateNodeDialog from "./UpdateNodeDialog";
 import AttachmentManager from "./AttachmentManager";
 import DeleteConfirmation from "./DeleteConfirmation";
+import LinkDetailsManager from "./LinkDetailsManager";
 
 
 const NodeDetailsDialog = ({
@@ -28,7 +29,7 @@ const NodeDetailsDialog = ({
   const [showDeleteLinkConfirm, setShowDeleteLinkConfirm] = useState(false);
   const [selectedLinkId, setSelectedLinkId] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
-const [isMaximized, setIsMaximized] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   
   // Update currentNodeDetails when nodeDetails prop changes
   useEffect(() => {
@@ -99,7 +100,7 @@ const [isMaximized, setIsMaximized] = useState(false);
   
     try {
       await axios.delete(
-        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/${currentNodeDetails.id}`
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/${currentNodeDetails.id}`
       ).then(async(response) => {
 
         await getData();
@@ -123,7 +124,7 @@ const [isMaximized, setIsMaximized] = useState(false);
   
     try {
       await axios.delete(
-        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${selectedLinkId}`
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/links?sourceId=${currentNodeDetails.id}&targetId=${selectedLinkId}`
       );
   
       // Refresh node details to update links
@@ -351,10 +352,7 @@ const [isMaximized, setIsMaximized] = useState(false);
 
       {showAttachmentManager && <AttachmentManager nodeDetails={currentNodeDetails}/>}
     </div>
-
-      
-      {/* Related nodes section */}
-      {(() => {
+    {(() => {
         const relatedNodes = getRelatedNodes(currentNodeDetails.id);
         return (
           <div>
@@ -468,11 +466,6 @@ const [isMaximized, setIsMaximized] = useState(false);
                         <div style={{ fontWeight: "500", marginBottom: "3px" }}>
                           {child.label}
                         </div>
-                        {child.code && (
-                          <div style={{ fontSize: "14px", color: "#64748b" }}>
-                            {child.code}
-                          </div>
-                        )}
                       </div>
                       <div style={{ color: "#3b82f6", fontSize: "14px" }}>
                         View &rarr;
@@ -482,274 +475,84 @@ const [isMaximized, setIsMaximized] = useState(false);
                 </div>
               </div>
             )}
-
-            {/* Linked nodes section */}
-            {relatedNodes.linkedNodes.length > 0 && (
-              <div style={{ marginBottom: "20px" }}>
-                <h3
-                  style={{
-                    fontSize: "18px",
-                    marginBottom: "12px",
-                    color: "#34495e",
-                  }}
-                >
-                  Linked Nodes ({relatedNodes.linkedNodes.length})
-                </h3>
-                <div
-                  style={{
-                    maxHeight: "200px",
-                    overflowY: "auto",
-                    borderRadius: "6px",
-                    border: "1px solid #e2e8f0",
-                  }}
-                >
-                  {relatedNodes.linkedNodes.map((linkedNode, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        padding: "12px",
-                        borderBottom:
-                          index < relatedNodes.linkedNodes.length - 1
-                            ? "1px solid #e2e8f0"
-                            : "none",
-                        cursor: "pointer",
-                        backgroundColor: "#f0f7ff",
-                        transition: "all 0.2s ease",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                      onClick={() => {
-                        onClose(); // Close current dialog
-                        const node = graphData.nodes.find(
-                          (n) => n.id === linkedNode.id
-                        );
-                        if (node) handleNodeClick(node);
-                      }}
-                      onMouseOver={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#e1effe")
-                      }
-                      onMouseOut={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#f0f7ff")
-                      }
-                    >
-                      <div>
-                        <div style={{ fontWeight: "500", marginBottom: "3px" }}>
-                          {linkedNode.label}
-                        </div>
-                        {linkedNode.code && (
-                          <div style={{ fontSize: "14px", color: "#3b82f6" }}>
-                            {linkedNode.code}
-                          </div>
-                        )}
-                      </div>
-                      <div style={{ color: "#3b82f6", fontSize: "14px" }}>
-                        View &rarr;
-                      </div>
-                    </div>
-                  ))}
                 </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-     {/* Original node data (links) */}
-{currentNodeDetails.originalData &&
-  currentNodeDetails.originalData.links &&
-  currentNodeDetails.originalData.links.length > 0 && (
-    <div style={{ marginTop: "20px" }}>
-      <h3
-        style={{
-          fontSize: "18px",
-          marginBottom: "12px",
-          color: "#34495e",
-        }}
-      >
-        Source Links Content
-      </h3>
-      <div
-        style={{
-          border: "1px solid #e2e8f0",
-          borderRadius: "6px",
-          overflow: "hidden",
-          marginBottom: "10px",
-        }}
-      >
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ backgroundColor: "#f1f5f9" }}>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px",
-                  borderBottom: "2px solid #cbd5e0",
-                }}
-              >
-                Target
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "12px",
-                  borderBottom: "2px solid #cbd5e0",
-                }}
-              >
-                Content
-              </th>
-              <th
-                style={{
-                  textAlign: "center",
-                  borderBottom: "2px solid #cbd5e0",
-                  width: "60px",
-                }}
-              >
-                
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentNodeDetails.originalData.links.map((link, index) => {
-              const targetNode = graphData.nodes.find(
-                (n) => n.id === link.id
               );
-              return (
-                <tr
-                  key={index}
-                  style={{
-                    backgroundColor:
-                      index % 2 === 0 ? "#ffffff" : "#f8fafc",
-                  }}
-                >
-                  <td
-                    style={{
-                      padding: "12px",
-                      borderBottom: "1px solid #e2e8f0",
-                    }}
-                  >
-                    {targetNode ? targetNode.label : "Unknown"}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px",
-                      borderBottom: "1px solid #e2e8f0",
-                    }}
-                  >
-                    {link.content}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px",
-                      borderBottom: "1px solid #e2e8f0",
-                      textAlign: "center",
-                    }}
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedLinkId(link.id);
-                        setShowDeleteLinkConfirm(true);
-                      }}
-                      disabled={deletingLinkIds[link.id]}
-                      style={{
-                        backgroundColor: "transparent",
-                        border: "none",
-                        color: "#ef4444",
-                        cursor: "pointer",
-                        fontSize: "16px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "4px",
-                        borderRadius: "4px",
-                        transition: "background-color 0.2s",
-                      }}
-                      title="Delete link"
-                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
-                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                    >
-                      {deletingLinkIds[link.id] ? (
-                        <span>...</span>
-                      ) : (
-                        <FaTrash />
-                      )}
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )}
+            })()}
 
-<button
-  onClick={() => setShowDeleteNodeConfirm(true)}
-  disabled={loading}
-  style={{
-    padding: "8px 16px",
-    backgroundColor: "rgb(255, 100, 100)",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontSize: "16px",
-  }}
->
-  {loading ? "Deleting..." : "Delete Node"}
-</button>
-
-{/* Delete link confirmation modal */}
-{showDeleteLinkConfirm && (
-  <div style={{ position: "relative",bottom: "150px",left:"50px", right: "0px", zIndex: 10 }}>
-    <DeleteConfirmation
-    openProp={true}
-      onConfirm={handleDeleteLink}
-      onCancel={() => setShowDeleteLinkConfirm(false)}
-    />
-  </div>
-)}
-
-{/* Delete node confirmation modal */}
-{showDeleteNodeConfirm && (
- 
-    <DeleteConfirmation
-    openProp={true}
-      onConfirm={handleDelete}
-      onCancel={() => setShowDeleteNodeConfirm(false)}
-    />
-
-)}
-
-{isNewNodeDialogOpen && (
-  <NewNodeDialog
-    getdata={getData}
-    nodeDetails={currentNodeDetails}
-    onClose={() => setIsNewNodeDialogOpen(false)}
-    onSave={handleNewNodeSave}
+      
+      {/* Related nodes section */}
+      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+  <LinkDetailsManager
+    currentNodeDetails={currentNodeDetails} 
+    refreshNodeDetails={refreshNodeDetails} 
+    handleNodeClick={handleNodeClick}
+    onClose={onClose}
+    graphData={graphData}
   />
-)}
-{isUpdateNodeDialogOpen && (
-  <UpdateNodeDialog
-    getdata={getData}
-    nodeDetails={currentNodeDetails}
-    onClose={() => setIsUpdateNodeDialogOpen(false)}
-    onSave={handleUpdateNodeSave}
-  />
-)}
-{isNewLinkDialogOpen && (
-  <AddLinkDialog
-    getdata={getData}
-    nodedetails={currentNodeDetails}
-    onClose={() => setIsNewLinkDialogOpen(false)}
-    onSave={handleNewLinkSave}
-  />
-)}
 </div>
-  
-);
+
+      <button
+        onClick={() => setShowDeleteNodeConfirm(true)}
+        disabled={loading}
+        style={{
+          padding: "8px 16px",
+          backgroundColor: "rgb(255, 100, 100)",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+          cursor: "pointer",
+          fontSize: "16px",
+        }}
+      >
+        {loading ? "Deleting..." : "Delete Node"}
+      </button>
+
+      {/* Delete link confirmation modal */}
+      {showDeleteLinkConfirm && (
+        <div style={{ position: "relative", bottom: "150px", left: "50px", right: "0px", zIndex: 10 }}>
+          <DeleteConfirmation
+            openProp={true}
+            onConfirm={handleDeleteLink}
+            onCancel={() => setShowDeleteLinkConfirm(false)}
+          />
+        </div>
+      )}
+
+      {/* Delete node confirmation modal */}
+      {showDeleteNodeConfirm && (
+        <DeleteConfirmation
+          openProp={true}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteNodeConfirm(false)}
+        />
+      )}
+
+      {isNewNodeDialogOpen && (
+        <NewNodeDialog
+          getdata={getData}
+          nodeDetails={currentNodeDetails}
+          onClose={() => setIsNewNodeDialogOpen(false)}
+          onSave={handleNewNodeSave}
+        />
+      )}
+      {isUpdateNodeDialogOpen && (
+        <UpdateNodeDialog
+          getdata={getData}
+          nodeDetails={currentNodeDetails}
+          onClose={() => setIsUpdateNodeDialogOpen(false)}
+          onSave={handleUpdateNodeSave}
+        />
+      )}
+      {isNewLinkDialogOpen && (
+        <AddLinkDialog
+          getdata={getData}
+          nodedetails={currentNodeDetails}
+          onClose={() => setIsNewLinkDialogOpen(false)}
+          onSave={handleNewLinkSave}
+        />
+      )}
+    </div>
+  );
 };
 
 export default NodeDetailsDialog;

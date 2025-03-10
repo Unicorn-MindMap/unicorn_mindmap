@@ -22,7 +22,7 @@ const AttachmentManager = ({ nodeDetails }) => {
     const fetchAttachments = async () => {
       try {
         const response = await axios.get(
-          `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/attachments_get/${nodeDetails.id}`
+          `https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/attachments_get/${nodeDetails.id}`
         );
         setAttachments(response.data);
       } catch (error) {
@@ -76,7 +76,7 @@ const AttachmentManager = ({ nodeDetails }) => {
 
     try {
       const response = await axios.post(
-        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/attachment_add/${nodeDetails.id}`,
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/attachment_add/${nodeDetails.id}`,
         newAttachment
       );
 
@@ -105,7 +105,7 @@ const AttachmentManager = ({ nodeDetails }) => {
 
     try {
       await axios.delete(
-        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes/attachments_remove/${deleteAttachmentId}`
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/attachments_remove/${deleteAttachmentId}`
       );
       setAttachments(attachments.filter((att) => att.id !== deleteAttachmentId));
       toast.success("Attachment deleted successfully!");

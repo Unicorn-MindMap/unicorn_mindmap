@@ -28,7 +28,7 @@ const NewNodeDialog = ({ onClose, onSave, nodeDetails, getdata }) => {
       };
 
       const response = await axios.post(
-        `https://unicorn-mindmap-bcatemfdc2f0encx.southeastasia-01.azurewebsites.net/api/Nodes?parentId=${nodeDetails.id}`,
+        `https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes?parentId=${nodeDetails.id}`,
         newNode
       );
 
