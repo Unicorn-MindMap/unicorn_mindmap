@@ -16,6 +16,8 @@ const GraphVisualization = ({ data, getdata }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [focusedNode, setFocusedNode] = useState(null);
+  const [parentNode, setParentNode] = useState(null);
+  const [childNodes, setChildNodes] = useState(new Set());
   const [highlightDepth, setHighlightDepth] = useState(0);
   const [showNodeDetails, setShowNodeDetails] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(null);
@@ -68,6 +70,8 @@ const GraphVisualization = ({ data, getdata }) => {
 
     // Clear focused node when data changes (e.g., after node deletion)
     setFocusedNode(null);
+    setParentNode(null);
+    setChildNodes(new Set());
     setHighlightNodes(new Set());
     setHighlightLinks(new Set());
   }, [data]);
@@ -93,6 +97,43 @@ const GraphVisualization = ({ data, getdata }) => {
     setSuggestions(filteredNodes.slice(0, 10));
     setShowSuggestions(true);
   }, [searchTerm, graphData.nodes]);
+
+  // Find the parent node of a given node
+  const findParentNode = useCallback((nodeId) => {
+    // Find parent node link
+    const parentLink = graphData.links.find(
+      (link) =>
+        (typeof link.target === "object" ? link.target.id : link.target) === nodeId && 
+        link.type === "parent-child"
+    );
+
+    if (parentLink) {
+      const parentId = typeof parentLink.source === "object" 
+        ? parentLink.source.id 
+        : parentLink.source;
+      return graphData.nodes.find((n) => n.id === parentId);
+    }
+    return null;
+  }, [graphData]);
+
+  // Find child nodes of a given node
+  const findChildNodes = useCallback((nodeId) => {
+    const children = new Set();
+    
+    graphData.links.forEach((link) => {
+      const sourceId = typeof link.source === "object" ? link.source.id : link.source;
+      const targetId = typeof link.target === "object" ? link.target.id : link.target;
+      
+      if (sourceId === nodeId && link.type === "parent-child") {
+        const childNode = graphData.nodes.find((n) => n.id === targetId);
+        if (childNode) {
+          children.add(childNode);
+        }
+      }
+    });
+    
+    return children;
+  }, [graphData]);
 
   const getConnectedNodesAndLinks = useCallback(
     (nodeId, depth = highlightDepth, visited = new Set(), currentDepth = 0) => {
@@ -158,11 +199,21 @@ const GraphVisualization = ({ data, getdata }) => {
       if (!focusedNodeObj) {
         // If the node doesn't exist anymore, reset the focus
         setFocusedNode(null);
+        setParentNode(null);
+        setChildNodes(new Set());
         setDisplayData(graphData);
         setHighlightNodes(new Set());
         setHighlightLinks(new Set());
         return;
       }
+
+       // Find the parent node
+       const parent = findParentNode(focusedNode.id);
+       setParentNode(parent);
+
+        // Find child nodes
+      const children = findChildNodes(focusedNode.id);
+      setChildNodes(children);
 
       // Get connected nodes and links up to specified depth
       const connected = getConnectedNodesAndLinks(focusedNode.id);
@@ -170,6 +221,38 @@ const GraphVisualization = ({ data, getdata }) => {
       // Create a new set with the focused node and connected nodes
       const nodesToShow = new Set([focusedNodeObj]);
       connected.nodes.forEach((node) => nodesToShow.add(node));
+
+      // Add parent node to the display if it exists
+      if (parent) {
+        nodesToShow.add(parent);
+        // Find the link between parent and focused node
+        const parentLink = graphData.links.find(
+          (link) => {
+            const sourceId = typeof link.source === "object" ? link.source.id : link.source;
+            const targetId = typeof link.target === "object" ? link.target.id : link.target;
+            return sourceId === parent.id && targetId === focusedNode.id && link.type === "parent-child";
+          }
+        );
+        if (parentLink) {
+          connected.links.add(parentLink);
+        }
+      }
+
+      // Add child nodes to display and make sure they're in the highlights
+      children.forEach(child => {
+        nodesToShow.add(child);
+        // Find the link between focused node and child
+        const childLink = graphData.links.find(
+          (link) => {
+            const sourceId = typeof link.source === "object" ? link.source.id : link.source;
+            const targetId = typeof link.target === "object" ? link.target.id : link.target;
+            return sourceId === focusedNode.id && targetId === child.id && link.type === "parent-child";
+          }
+        );
+        if (childLink) {
+          connected.links.add(childLink);
+        }
+      });
 
       // Filter links to only include those between visible nodes
       const linksToShow = Array.from(connected.links);
@@ -188,8 +271,10 @@ const GraphVisualization = ({ data, getdata }) => {
       setDisplayData(graphData);
       setHighlightNodes(new Set());
       setHighlightLinks(new Set());
+      setParentNode(null);
+      setChildNodes(new Set());
     }
-  }, [focusedNode, highlightDepth, getConnectedNodesAndLinks, graphData]);
+  }, [focusedNode, highlightDepth, getConnectedNodesAndLinks, graphData,findParentNode,findChildNodes]);
 
   const handleNodeClick = useCallback(
     (node) => {
@@ -277,11 +362,13 @@ const GraphVisualization = ({ data, getdata }) => {
 
       const isHighlighted = highlightNodes.has(node);
       const isFocused = focusedNode && node.id === focusedNode.id;
+      const isParent = parentNode && node.id === parentNode.id;
+      const isChild = Array.from(childNodes).some(child => child.id === node.id);
 
       const sprite = new THREE.Sprite(
         new THREE.SpriteMaterial({
           map: new THREE.CanvasTexture(
-            createTextLabel(node.label, isHighlighted, isFocused)
+            createTextLabel(node.label, isHighlighted, isFocused,isParent,isChild)
           ),
           depthTest: false,
         })
@@ -291,10 +378,10 @@ const GraphVisualization = ({ data, getdata }) => {
       sprite.position.set(0, 6, 0);
       return sprite;
     },
-    [highlightNodes, focusedNode]
+    [highlightNodes, focusedNode,parentNode,childNodes]
   );
 
-  const createTextLabel = (text, isHighlighted, isFocused) => {
+  const createTextLabel = (text, isHighlighted, isFocused,isParent,isChild) => {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     canvas.width = 256;
@@ -371,9 +458,14 @@ const GraphVisualization = ({ data, getdata }) => {
     context.lineWidth = isFocused ? 3 : isHighlighted ? 2 : 1;
     context.strokeStyle = isFocused
       ? "#005500"
+      : isParent
+      ? "#cc3300"
+      : isChild
+      ? "#dbc532"
       : isHighlighted
       ? "#0066cc"
       : "#aaaaaa";
+      
     context.stroke();
 
     // Adjust font size if text is too wide
