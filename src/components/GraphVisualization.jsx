@@ -459,9 +459,9 @@ const GraphVisualization = ({ data, getdata }) => {
     context.strokeStyle = isFocused
       ? "#005500"
       : isParent
-      ? "#cc3300"
+      ? "#f2b00a"
       : isChild
-      ? "#dbc532"
+      ? "#6902b3"
       : isHighlighted
       ? "#0066cc"
       : "#aaaaaa";
