@@ -34,6 +34,7 @@ const NodeDetailsDialog = ({
   // Update currentNodeDetails when nodeDetails prop changes
   useEffect(() => {
     setCurrentNodeDetails(nodeDetails);
+    setShowAttachmentManager(false);
   }, [nodeDetails]);
 
   // Re-render component with fresh data after operations
