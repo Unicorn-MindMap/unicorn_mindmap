@@ -99,7 +99,7 @@ const AttachmentManager = ({ nodeDetails }) => {
     }
   };
 
-  // This will be called when delete is confirmed
+  // This will be called when delete is confirmed sfsfsfsf
   const handleDeleteConfirm = async () => {
     if (!deleteAttachmentId) return;
 
