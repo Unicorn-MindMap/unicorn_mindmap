@@ -12,8 +12,6 @@ const AttachmentManager = ({ nodeDetails }) => {
   const [fileType, setFileType] = useState("User Story");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  // Add state for attachments loading
-  const [isAttachmentsLoading, setIsAttachmentsLoading] = useState(true);
   // Add states for delete confirmation
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteAttachmentId, setDeleteAttachmentId] = useState(null);
@@ -22,9 +20,6 @@ const AttachmentManager = ({ nodeDetails }) => {
 
   useEffect(() => {
     const fetchAttachments = async () => {
-      if (!nodeDetails || !nodeDetails.id) return;
-      
-      setIsAttachmentsLoading(true);
       try {
         const response = await axios.get(
           `https://unicorn-mindmap-bcatemfdc2f0encx.southindia-01.azurewebsites.net/api/Nodes/attachments_get/${nodeDetails.id}`
@@ -32,15 +27,13 @@ const AttachmentManager = ({ nodeDetails }) => {
         setAttachments(response.data);
       } catch (error) {
         console.error("Error fetching attachments:", error);
-      } finally {
-        setIsAttachmentsLoading(false);
       }
     };
 
     if (nodeDetails && nodeDetails.id) {
       fetchAttachments();
     }
-  }, [nodeDetails]); // Changed dependency to only nodeDetails to prevent infinite loop
+  }, [attachments, nodeDetails]);
 
   // Validate inputs
   const validateInputs = () => {
@@ -179,41 +172,8 @@ const AttachmentManager = ({ nodeDetails }) => {
         </button>
       </div>
 
-      {/* Attachments List with Loading State */}
-      {isAttachmentsLoading ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "24px 0",
-            color: "#6b7280",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            style={{
-              border: "3px solid #e3f2fd",
-              borderRadius: "50%",
-              borderTopColor: "#3b82f6",
-              width: "24px",
-              height: "24px",
-              animation: "spin 1s linear infinite",
-              marginBottom: "8px",
-            }}
-          />
-          <style>
-            {`
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            `}
-          </style>
-          Loading attachments...
-        </div>
-      ) : attachments.length > 0 ? (
+      {/* Attachments List */}
+      {attachments.length > 0 ? (
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {attachments.map((attachment) => (
             <li
@@ -422,6 +382,8 @@ const AttachmentManager = ({ nodeDetails }) => {
                   </p>
                 )}
               </div>
+
+
 
               {errors.submit && (
                 <p style={{ color: "#ef4444", fontSize: "0.875rem", marginBottom: "8px" }}>
